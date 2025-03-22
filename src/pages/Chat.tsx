@@ -3,6 +3,7 @@ import TransitionLayout from '@/components/TransitionLayout';
 import Navbar from '@/components/Navbar';
 import ChatInterface from '@/components/ChatInterface';
 import { useSearchParams } from 'react-router-dom';
+import { Toaster } from '@/components/ui/toaster';
 
 const Chat = () => {
   const [searchParams] = useSearchParams();
@@ -25,6 +26,7 @@ const Chat = () => {
           <ChatInterface initialQuestion={initialQuestion} />
         </div>
       </div>
+      <Toaster />
     </TransitionLayout>
   );
 };

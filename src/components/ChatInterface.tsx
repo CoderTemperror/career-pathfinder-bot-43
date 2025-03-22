@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Send, Sparkles, RotateCcw, Loader2 } from 'lucide-react';
@@ -7,83 +8,175 @@ import { Avatar } from '@/components/ui/avatar';
 import { ChatMessage } from '@/types';
 import { chatMessageAnimation } from '@/utils/animations';
 import { v4 as uuidv4 } from 'uuid';
+import { toast } from '@/components/ui/use-toast';
 
-// Improved AI response logic
-const getAIResponse = async (message: string, previousMessages: ChatMessage[]): Promise<string> => {
-  // Simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 1500));
-  
-  const lowerMessage = message.toLowerCase();
-  const context = previousMessages.map(msg => msg.content).join(" ");
-  
-  // If asking about education or academic background
-  if (lowerMessage.includes('education') || lowerMessage.includes('degree') || lowerMessage.includes('study') || lowerMessage.includes('academic')) {
-    if (context.includes('education') || context.includes('degree')) {
-      return "Thanks for sharing more about your education. Based on your academic background, what specific skills did you develop during your studies that you enjoy using?";
+// More advanced AI response generation with context awareness
+const getAIResponse = async (
+  message: string, 
+  conversationHistory: ChatMessage[]
+): Promise<string> => {
+  try {
+    // In a real implementation, you would call an actual AI API here
+    // For demo purposes, we'll use a more sophisticated response system
+    
+    // Simulate network delay (1-2 seconds)
+    await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 1000));
+    
+    const lowerMessage = message.toLowerCase();
+    const context = conversationHistory.map(msg => msg.content).join(" ").toLowerCase();
+    
+    // Check for conversation stage based on history length and content
+    const isInitialInteraction = conversationHistory.length <= 2;
+    const hasMentionedEducation = context.includes('education') || context.includes('degree') || context.includes('study');
+    const hasMentionedSkills = context.includes('skill') || context.includes('ability') || context.includes('strength');
+    const hasMentionedInterests = context.includes('interest') || context.includes('hobby') || context.includes('passion');
+    const hasMentionedPersonality = context.includes('personality') || context.includes('trait') || context.includes('character');
+    
+    // Determine user's stage in the career discovery process
+    const stage = {
+      exploration: isInitialInteraction || lowerMessage.includes('explore') || lowerMessage.includes('discover'),
+      guidance: context.includes('guidance') || lowerMessage.includes('guide') || lowerMessage.includes('advice'),
+      specificCareer: lowerMessage.includes('software') || lowerMessage.includes('doctor') || lowerMessage.includes('teacher'),
+      confused: lowerMessage.includes('confused') || lowerMessage.includes('unsure') || lowerMessage.includes('don\'t know'),
+    };
+
+    // Detect specific career inquiries
+    const careerMentions = {
+      tech: lowerMessage.includes('tech') || lowerMessage.includes('developer') || lowerMessage.includes('programming'),
+      healthcare: lowerMessage.includes('health') || lowerMessage.includes('doctor') || lowerMessage.includes('nurse'),
+      education: lowerMessage.includes('teach') || lowerMessage.includes('education') || lowerMessage.includes('professor'),
+      business: lowerMessage.includes('business') || lowerMessage.includes('finance') || lowerMessage.includes('management'),
+      creative: lowerMessage.includes('art') || lowerMessage.includes('design') || lowerMessage.includes('creative'),
+    };
+    
+    // Education-related responses
+    if (lowerMessage.includes('education') || lowerMessage.includes('degree') || 
+        lowerMessage.includes('study') || lowerMessage.includes('learn')) {
+      
+      if (hasMentionedEducation) {
+        // Follow-up questions about education
+        const educationFollowups = [
+          "How has your educational background shaped your career interests so far?",
+          "Do you feel your education has prepared you well for the career path you're considering?",
+          "Are there any additional qualifications or certifications you're thinking about pursuing?",
+          "What aspects of your education did you find most engaging or valuable?",
+          "How do you think your educational background differentiates you in the job market?"
+        ];
+        return educationFollowups[Math.floor(Math.random() * educationFollowups.length)];
+      }
+      
+      return "Education is a key factor in career planning. Could you tell me about your educational background? What level of education have you completed, and in what fields or subjects?";
     }
-    return "I'd love to hear about your educational background. What level of education have you completed, and in what field or subjects did you study?";
-  }
-  
-  // If discussing skills or strengths
-  if (lowerMessage.includes('skill') || lowerMessage.includes('strength') || lowerMessage.includes('good at')) {
-    if (context.includes('technology') || context.includes('program') || context.includes('develop')) {
-      return "Your technical skills are valuable in today's job market. Have you considered roles in software development, IT management, or data science? Which of these areas aligns most with your interests?";
+    
+    // Skills-related responses
+    if (lowerMessage.includes('skill') || lowerMessage.includes('ability') || 
+        lowerMessage.includes('good at') || lowerMessage.includes('strength')) {
+      
+      if (hasMentionedSkills) {
+        // Follow-up on previously mentioned skills
+        if (context.includes('technical') || context.includes('programming')) {
+          return "Your technical skills are quite valuable. Have you considered how they might apply in emerging fields like AI, blockchain, or data science? These areas are projected to grow significantly in the coming years.";
+        } else if (context.includes('communication') || context.includes('people')) {
+          return "Strong interpersonal skills are highly transferable. Have you thought about roles in areas like HR, management, customer success, or sales where these skills are particularly valuable?";
+        } else if (context.includes('creative') || context.includes('design')) {
+          return "Creative skills are increasingly important in the digital economy. Have you explored UX/UI design, content creation, or digital marketing where these abilities can really shine?";
+        }
+      }
+      
+      return "Understanding your skills is crucial for finding the right career fit. What would you say are your top skills or strengths? These could be technical skills, soft skills, or natural abilities.";
     }
-    if (context.includes('creative') || context.includes('design') || context.includes('art')) {
-      return "Your creative abilities could be well-suited for careers in UX/UI design, content creation, or marketing. What aspects of the creative process do you enjoy the most?";
+    
+    // Interest-based responses
+    if (lowerMessage.includes('interest') || lowerMessage.includes('hobby') || 
+        lowerMessage.includes('enjoy') || lowerMessage.includes('passion')) {
+      
+      if (hasMentionedInterests) {
+        // Provide more specific guidance based on interests
+        if (context.includes('technology') || context.includes('computer')) {
+          return "Your interest in technology could lead to various fulfilling careers. Beyond software development, have you considered fields like cybersecurity, data analysis, or technology consulting? Each offers different day-to-day experiences while leveraging a tech background.";
+        } else if (context.includes('help') || context.includes('people')) {
+          return "Your desire to help others could be fulfilled in many ways. Have you thought about careers in social work, counseling, healthcare, or even corporate social responsibility roles? Each allows you to make a positive impact in different ways.";
+        } else if (context.includes('creative') || context.includes('art')) {
+          return "Creative pursuits can lead to fulfilling careers. Beyond traditional art and design, have you explored roles in content creation, marketing, UI/UX design, or product development where creativity is highly valued?";
+        }
+      }
+      
+      return "Our interests often point to careers we'll find fulfilling. What activities or subjects genuinely interest you or make you lose track of time? What topics do you enjoy learning about?";
     }
-    return "Understanding your skills is important for career alignment. Can you tell me more about what you excel at? Are these technical skills, soft skills, or both?";
-  }
-  
-  // If discussing interests or hobbies
-  if (lowerMessage.includes('interest') || lowerMessage.includes('hobby') || lowerMessage.includes('enjoy')) {
-    if (context.includes('people') || context.includes('help') || context.includes('teach')) {
-      return "Your interest in working with and helping others suggests careers in education, counseling, healthcare, or customer-facing roles might be fulfilling for you. Would any of these areas interest you?";
+    
+    // Specific career inquiries
+    if (careerMentions.tech) {
+      return "The technology field offers diverse opportunities from software development to cybersecurity to AI research. With your background, would you prefer creating products, ensuring their security, analyzing data, or perhaps leading technical teams? Each path requires different skills and offers different rewards.";
     }
-    if (context.includes('analysis') || context.includes('data') || context.includes('research')) {
-      return "With your analytical interests, have you considered careers in data analysis, market research, or scientific research? These fields leverage critical thinking and problem-solving abilities.";
+    
+    if (careerMentions.healthcare) {
+      return "Healthcare careers range from direct patient care roles like nursing to technical positions like medical imaging or administrative roles in healthcare management. Are you more drawn to working directly with patients, the technical aspects of healthcare, or the administrative side?";
     }
-    return "Interests and passions often lead to fulfilling careers. What activities energize you or make you lose track of time when you're doing them?";
-  }
-  
-  // If asking about specific industries
-  if (lowerMessage.includes('technology') || lowerMessage.includes('tech') || lowerMessage.includes('programming')) {
-    if (context.includes('beginner') || context.includes('start') || context.includes('learn')) {
-      return "For someone starting in technology, I recommend exploring foundational courses in programming, web development, or IT basics. Platforms like Coursera, freeCodeCamp, or Codecademy offer excellent introductory resources. Which area of technology interests you most?";
+    
+    if (careerMentions.education) {
+      return "Careers in education extend beyond classroom teaching to instructional design, educational technology, administration, or educational policy. What aspects of education are you most passionate about? Working directly with students, developing curriculum, or perhaps shaping educational systems?";
     }
-    return "The technology field offers diverse opportunities from software development to cybersecurity to product management. With your background, which technology specialization interests you most? Would you prefer creating products, ensuring their security, or managing technical teams?";
+    
+    if (careerMentions.business) {
+      return "The business world encompasses finance, marketing, management, entrepreneurship, and many other specializations. Are you interested in analyzing financial data, developing marketing strategies, leading teams, or perhaps starting your own venture?";
+    }
+    
+    if (careerMentions.creative) {
+      return "Creative careers include graphic design, content creation, UI/UX design, writing, and many other fields. Do you prefer visual creative work, written content, or perhaps designing experiences? What mediums or tools do you enjoy working with most?";
+    }
+    
+    // Career change guidance
+    if (lowerMessage.includes('change') || lowerMessage.includes('transition') || lowerMessage.includes('switch')) {
+      return "Career transitions can be both challenging and rewarding. What's motivating your desire for change? Understanding your transferable skills and core motivations will help guide this process. What aspects of your current work do you want to leave behind, and what would you like to find in your next role?";
+    }
+    
+    // Preparation and pathway guidance
+    if (lowerMessage.includes('prepare') || lowerMessage.includes('ready') || lowerMessage.includes('path')) {
+      return "Career preparation typically involves a combination of education, skill development, networking, and gaining relevant experience. Based on our conversation, I'd recommend focusing on [specific area]. Would you like more detailed guidance on preparing for this path?";
+    }
+    
+    // If confused or uncertain
+    if (stage.confused) {
+      return "It's completely normal to feel uncertain about career directions. Let's approach this step by step. First, let's identify what you enjoy doing and what you're good at. Then we can explore careers that match those strengths and interests. Could you share some activities or subjects that you naturally enjoy or excel at?";
+    }
+    
+    // General responses based on conversation stage
+    if (stage.exploration) {
+      const explorationResponses = [
+        "I'd like to understand more about your background. Could you tell me about your education, work experience, and what kinds of activities you find engaging?",
+        "What kinds of work environments do you thrive in? Do you prefer structured settings or more flexible ones?",
+        "Let's start by exploring your interests. What subjects or activities have consistently captured your attention throughout your life?",
+        "What values are most important to you in a career? Financial security, work-life balance, making a difference, creative expression, or something else?",
+        "If you could design your ideal workday, what would it look like? What activities would you be doing, and with whom?"
+      ];
+      return explorationResponses[Math.floor(Math.random() * explorationResponses.length)];
+    }
+    
+    if (stage.guidance) {
+      const guidanceResponses = [
+        "Based on what you've shared, careers in [field] might align well with your profile. Would you like to explore some specific roles in this area?",
+        "Have you considered careers that combine your interests in [topic1] and [topic2]? This intersection often leads to unique and fulfilling career paths.",
+        "Your strengths in [skill] could be valuable in fields like [field1], [field2], or [field3]. Which of these areas sounds most appealing to you?",
+        "Sometimes it helps to think about the problems you'd like to solve rather than specific job titles. What kinds of challenges would you find satisfying to work on?",
+        "Would it be helpful if we explored some career assessment tools to further clarify your options? There are several reliable resources available."
+      ];
+      return guidanceResponses[Math.floor(Math.random() * guidanceResponses.length)];
+    }
+    
+    // Default thoughtful response
+    const thoughtfulResponses = [
+      "Thank you for sharing that. To help you explore suitable career options, could you tell me more about what you're naturally good at and what kinds of tasks you find energizing rather than draining?",
+      "That's helpful context. For better career guidance, it would be good to understand your preferred work style. Do you thrive in collaborative environments or prefer independent work? Do you enjoy variety or consistency in your daily tasks?",
+      "I appreciate you sharing that information. Another important factor in career satisfaction is work-life alignment. How important is work-life balance, location flexibility, or schedule autonomy to you?",
+      "Based on our conversation so far, I'm starting to see some patterns. Before I share some potential career directions, is there anything else you'd like me to know about your goals or constraints?",
+      "Career decisions are often influenced by both practical and personal factors. Beyond skills and interests, are there other considerations like geographic location, salary expectations, or industry preferences that are important to you?"
+    ];
+    
+    return thoughtfulResponses[Math.floor(Math.random() * thoughtfulResponses.length)];
+  } catch (error) {
+    console.error("Error generating AI response:", error);
+    return "I'm sorry, I encountered an issue while processing your message. Could you please try again or rephrase your question?";
   }
-  
-  // If asking about healthcare
-  if (lowerMessage.includes('health') || lowerMessage.includes('medical') || lowerMessage.includes('care')) {
-    return "Healthcare careers range from direct patient care roles like nursing to technical positions like medical technology or administrative roles in healthcare management. Are you more interested in working directly with patients or in a supporting role?";
-  }
-  
-  // If asking about business or finance
-  if (lowerMessage.includes('business') || lowerMessage.includes('finance') || lowerMessage.includes('management')) {
-    return "Business and finance careers include financial analysis, management consulting, marketing, or entrepreneurship. Do you prefer working with numbers and analysis, developing strategies, or leading teams?";
-  }
-  
-  // If asking about career change
-  if (lowerMessage.includes('change') || lowerMessage.includes('transition') || lowerMessage.includes('switch')) {
-    return "Career transitions can be challenging but rewarding. What's motivating your desire for change? Understanding your transferable skills and what you're seeking in a new role will help guide this process.";
-  }
-  
-  // If asking how to prepare for a career
-  if (lowerMessage.includes('prepare') || lowerMessage.includes('ready') || lowerMessage.includes('path')) {
-    return "Preparing for a career typically involves a combination of education, skill development, networking, and gaining relevant experience. Based on what you've shared, are there specific areas where you'd like guidance on preparation steps?";
-  }
-  
-  // Default responses that vary based on conversation length
-  const generalResponses = [
-    "Could you tell me more about your educational background and any work experience you have? This will help me provide more tailored career guidance.",
-    "What kinds of work environments do you thrive in? Do you prefer structured settings or more flexible ones?",
-    "Let's explore your interests more deeply. What subjects or activities have consistently captured your attention throughout your life?",
-    "What values are most important to you in a career? Financial security, work-life balance, making a difference, creative expression, or something else?",
-    "Thinking about your ideal day at work, what activities would you be doing? Who would you be working with?",
-  ];
-  
-  return generalResponses[Math.floor(Math.random() * generalResponses.length)];
 };
 
 interface ChatInterfaceProps {
@@ -102,6 +195,13 @@ const ChatInterface = ({ className = "", initialQuestion }: ChatInterfaceProps) 
   ]);
   const [inputValue, setInputValue] = useState(initialQuestion || "");
   const [isLoading, setIsLoading] = useState(false);
+  const [conversationContext, setConversationContext] = useState<{
+    education?: string;
+    skills?: string[];
+    interests?: string[];
+    personality?: string[];
+    careerPreferences?: string[];
+  }>({});
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
   useEffect(() => {
@@ -116,6 +216,30 @@ const ChatInterface = ({ className = "", initialQuestion }: ChatInterfaceProps) 
       handleSendMessage();
     }
   }, []);
+
+  // Update conversation context based on messages
+  useEffect(() => {
+    // This would be more sophisticated in a real implementation
+    // Here we're just doing basic keyword extraction
+    const userMessages = messages.filter(m => m.role === 'user').map(m => m.content.toLowerCase());
+    const allUserContent = userMessages.join(' ');
+    
+    // Extract potential education info
+    if (allUserContent.includes('degree') || allUserContent.includes('university') || 
+        allUserContent.includes('college') || allUserContent.includes('school')) {
+      // In a real implementation, we would extract actual education info
+      setConversationContext(prev => ({ ...prev, hasDiscussedEducation: true }));
+    }
+    
+    // Extract potential skills
+    if (allUserContent.includes('skill') || allUserContent.includes('good at') || 
+        allUserContent.includes('expert') || allUserContent.includes('proficient')) {
+      // In a real implementation, we would extract actual skills
+      setConversationContext(prev => ({ ...prev, hasDiscussedSkills: true }));
+    }
+    
+    // Similarly for interests and other categories
+  }, [messages]);
 
   const handleSendMessage = async () => {
     if (!inputValue.trim() || isLoading) return;
@@ -148,6 +272,12 @@ const ChatInterface = ({ className = "", initialQuestion }: ChatInterfaceProps) 
     } catch (error) {
       console.error("Error getting AI response:", error);
       
+      toast({
+        title: "Error",
+        description: "Failed to get a response. Please try again.",
+        variant: "destructive",
+      });
+      
       // Add error message
       const errorMessage: ChatMessage = {
         id: uuidv4(),
@@ -171,6 +301,12 @@ const ChatInterface = ({ className = "", initialQuestion }: ChatInterfaceProps) 
         timestamp: new Date(),
       }
     ]);
+    setConversationContext({});
+    
+    toast({
+      title: "Conversation Reset",
+      description: "Started a new conversation",
+    });
   };
 
   return (
