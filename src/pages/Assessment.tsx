@@ -14,6 +14,8 @@ import { useToast } from '@/components/ui/use-toast';
 import { toast as sonnerToast } from 'sonner';
 import TransitionLayout from '@/components/TransitionLayout';
 import Navbar from '@/components/Navbar';
+import OpenAIConfig from '@/components/OpenAIConfig';
+import OpenAIService from '@/services/openai';
 
 const questions = [
   {
@@ -108,11 +110,23 @@ const Assessment = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(false);
+  const [openAIAvailable, setOpenAIAvailable] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
   
   const currentQuestion = questions[currentStep];
   const progress = ((currentStep + 1) / questions.length) * 100;
+  
+  useEffect(() => {
+    setOpenAIAvailable(OpenAIService.isInitialized());
+    
+    const checkOpenAI = () => {
+      setOpenAIAvailable(OpenAIService.isInitialized());
+    };
+    
+    window.addEventListener('storage', checkOpenAI);
+    return () => window.removeEventListener('storage', checkOpenAI);
+  }, []);
   
   const handleNext = () => {
     const currentQuestionId = currentQuestion.id;
@@ -140,7 +154,100 @@ const Assessment = () => {
     }
   };
   
-  const analyzeResults = () => {
+  const analyzeResultsWithOpenAI = async () => {
+    try {
+      const userProfile = Object.entries(answers).map(([questionId, answer]) => {
+        const question = questions.find(q => q.id === questionId);
+        if (!question) return '';
+        
+        let answerText = '';
+        if (Array.isArray(answer)) {
+          const options = question.options || [];
+          const selectedOptions = options
+            .filter(opt => answer.includes(opt.value))
+            .map(opt => opt.label);
+          answerText = selectedOptions.join(', ');
+        } else if (typeof answer === 'string') {
+          if (question.options) {
+            const option = question.options.find(opt => opt.value === answer);
+            answerText = option ? option.label : answer;
+          } else {
+            answerText = answer;
+          }
+        }
+        
+        return `${question.title}: ${answerText}`;
+      }).join('\n');
+      
+      const prompt = `
+Based on the following user profile for career assessment, identify the top 3 most suitable career matches.
+For each match, provide a match score percentage (0-100).
+
+USER PROFILE:
+${userProfile}
+
+Respond in the following JSON format (and only this format):
+{
+  "topMatches": [
+    {"id": "career-id", "title": "Career Title", "matchScore": percentage, "description": "Brief reason why this matches"},
+    {"id": "career-id", "title": "Career Title", "matchScore": percentage, "description": "Brief reason why this matches"},
+    {"id": "career-id", "title": "Career Title", "matchScore": percentage, "description": "Brief reason why this matches"}
+  ]
+}
+
+Choose career IDs from this list:
+- software-developer
+- data-scientist
+- healthcare-professional
+- financial-analyst
+- marketing-specialist
+- educator
+- creative-professional
+- management
+- research-scientist
+- legal-professional
+      `;
+      
+      const messages = [
+        {
+          role: 'system' as const,
+          content: 'You are a career assessment AI that analyzes user profiles and provides career matches in JSON format only.'
+        },
+        {
+          role: 'user' as const,
+          content: prompt
+        }
+      ];
+      
+      const response = await OpenAIService.generateChatCompletion(messages, {
+        temperature: 0.3,
+        max_tokens: 800
+      });
+      
+      try {
+        const jsonMatch = response.match(/\{[\s\S]*\}/);
+        if (!jsonMatch) {
+          throw new Error('Invalid response format from OpenAI');
+        }
+        
+        const jsonResponse = JSON.parse(jsonMatch[0]);
+        
+        if (!jsonResponse.topMatches || !Array.isArray(jsonResponse.topMatches)) {
+          throw new Error('Invalid response format from OpenAI');
+        }
+        
+        return jsonResponse.topMatches;
+      } catch (parseError) {
+        console.error('Error parsing OpenAI response:', parseError);
+        throw new Error('Failed to parse AI response');
+      }
+    } catch (error) {
+      console.error('Error analyzing results with OpenAI:', error);
+      throw error;
+    }
+  };
+  
+  const analyzeResultsLocally = () => {
     const education = answers.education || '';
     const field = answers.field || '';
     const skills = answers.skills || [];
@@ -293,28 +400,46 @@ const Assessment = () => {
     
     const topMatches = careerMatches.slice(0, 3);
     
-    sessionStorage.setItem('assessmentResults', JSON.stringify({
-      topMatches,
-      answers,
-      timestamp: new Date().toISOString()
-    }));
-    
-    sonnerToast("Assessment completed successfully!", {
-      description: "Navigating to your personalized career pathway...",
-    });
-    
     return topMatches;
   };
   
-  const handleComplete = () => {
+  const handleComplete = async () => {
     setLoading(true);
     
-    analyzeResults();
-    
-    setTimeout(() => {
+    try {
+      let results;
+      
+      if (openAIAvailable) {
+        results = await analyzeResultsWithOpenAI();
+      } else {
+        results = analyzeResultsLocally();
+      }
+      
+      sessionStorage.setItem('assessmentResults', JSON.stringify({
+        topMatches: results,
+        answers,
+        timestamp: new Date().toISOString(),
+        aiPowered: openAIAvailable
+      }));
+      
+      sonnerToast("Assessment completed successfully!", {
+        description: "Navigating to your personalized career pathway...",
+      });
+      
+      setTimeout(() => {
+        setLoading(false);
+        navigate('/pathway');
+      }, 2000);
+    } catch (error) {
+      console.error('Error completing assessment:', error);
       setLoading(false);
-      navigate('/pathway');
-    }, 2000);
+      
+      toast({
+        title: "Error",
+        description: "An error occurred while analyzing your results. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
   
   const handleInputChange = (questionId: string, value: string | string[]) => {
@@ -421,9 +546,17 @@ const Assessment = () => {
             <h1 className="text-3xl md:text-4xl font-display font-bold tracking-tight mb-4">
               Career Assessment
             </h1>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Answer a few questions to help us find the best career matches for you.
-            </p>
+            <div className="flex items-center justify-center space-x-2">
+              <p className="text-xl text-muted-foreground max-w-2xl">
+                Answer a few questions to help us find the best career matches for you.
+              </p>
+              <OpenAIConfig />
+            </div>
+            {!openAIAvailable && (
+              <p className="text-sm text-amber-600 dark:text-amber-400 mt-2">
+                For more accurate results, configure an OpenAI API key.
+              </p>
+            )}
           </div>
           
           <div className="mb-8">
@@ -464,7 +597,7 @@ const Assessment = () => {
               {loading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Processing
+                  {openAIAvailable ? "Analyzing with AI..." : "Processing..."}
                 </>
               ) : currentStep === questions.length - 1 ? (
                 <>

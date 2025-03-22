@@ -1,16 +1,16 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Sparkles, RotateCcw, Loader2 } from 'lucide-react';
+import { Send, Sparkles, RotateCcw, Loader2, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar } from '@/components/ui/avatar';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ChatMessage } from '@/types';
 import { chatMessageAnimation } from '@/utils/animations';
 import { v4 as uuidv4 } from 'uuid';
 import { toast } from '@/components/ui/use-toast';
+import OpenAIService from '@/services/openai';
 
-// More advanced AI response generation with context awareness
 const getAIResponse = async (
   message: string, 
   conversationHistory: ChatMessage[]
@@ -195,13 +195,7 @@ const ChatInterface = ({ className = "", initialQuestion }: ChatInterfaceProps) 
   ]);
   const [inputValue, setInputValue] = useState(initialQuestion || "");
   const [isLoading, setIsLoading] = useState(false);
-  const [conversationContext, setConversationContext] = useState<{
-    education?: string;
-    skills?: string[];
-    interests?: string[];
-    personality?: string[];
-    careerPreferences?: string[];
-  }>({});
+  const [openAIAvailable, setOpenAIAvailable] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
   useEffect(() => {
@@ -210,41 +204,74 @@ const ChatInterface = ({ className = "", initialQuestion }: ChatInterfaceProps) 
     }
   }, [messages]);
 
-  // If there's an initial question, send it on mount
+  useEffect(() => {
+    const checkOpenAI = () => {
+      const isInitialized = OpenAIService.isInitialized();
+      setOpenAIAvailable(isInitialized);
+    };
+
+    checkOpenAI();
+    
+    const handleStorageChange = () => {
+      checkOpenAI();
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    
+    const interval = setInterval(checkOpenAI, 5000);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      clearInterval(interval);
+    };
+  }, []);
+
   useEffect(() => {
     if (initialQuestion) {
       handleSendMessage();
     }
   }, []);
 
-  // Update conversation context based on messages
-  useEffect(() => {
-    // This would be more sophisticated in a real implementation
-    // Here we're just doing basic keyword extraction
-    const userMessages = messages.filter(m => m.role === 'user').map(m => m.content.toLowerCase());
-    const allUserContent = userMessages.join(' ');
-    
-    // Extract potential education info
-    if (allUserContent.includes('degree') || allUserContent.includes('university') || 
-        allUserContent.includes('college') || allUserContent.includes('school')) {
-      // In a real implementation, we would extract actual education info
-      setConversationContext(prev => ({ ...prev, hasDiscussedEducation: true }));
+  const getOpenAIResponse = async (userMessage: string): Promise<string> => {
+    try {
+      const conversationHistory = messages.map(msg => ({
+        role: msg.role as 'user' | 'assistant' | 'system',
+        content: msg.content
+      }));
+      
+      const systemMessage = {
+        role: 'system' as const,
+        content: `You are a helpful career advisor. Your goal is to help users explore career options based on their skills, interests, education, and preferences. 
+        Provide thoughtful, personalized career guidance. Ask follow-up questions to better understand the user's situation. 
+        Be concise but thorough, avoiding overly generic advice. Focus on providing actionable insights and specific career paths that might suit the user.`
+      };
+      
+      const userMessageObj = {
+        role: 'user' as const,
+        content: userMessage
+      };
+      
+      const messagesToSend = [
+        systemMessage,
+        ...conversationHistory.slice(-10),
+        userMessageObj
+      ];
+      
+      const response = await OpenAIService.generateChatCompletion(messagesToSend, {
+        temperature: 0.7,
+        max_tokens: 500
+      });
+      
+      return response;
+    } catch (error) {
+      console.error("Error with OpenAI:", error);
+      throw error;
     }
-    
-    // Extract potential skills
-    if (allUserContent.includes('skill') || allUserContent.includes('good at') || 
-        allUserContent.includes('expert') || allUserContent.includes('proficient')) {
-      // In a real implementation, we would extract actual skills
-      setConversationContext(prev => ({ ...prev, hasDiscussedSkills: true }));
-    }
-    
-    // Similarly for interests and other categories
-  }, [messages]);
+  };
 
   const handleSendMessage = async () => {
     if (!inputValue.trim() || isLoading) return;
     
-    // Add user message
     const userMessage: ChatMessage = {
       id: uuidv4(),
       role: 'user',
@@ -257,10 +284,14 @@ const ChatInterface = ({ className = "", initialQuestion }: ChatInterfaceProps) 
     setIsLoading(true);
     
     try {
-      // Get AI response based on current message and conversation history
-      const aiResponseText = await getAIResponse(inputValue, messages);
+      let aiResponseText: string;
       
-      // Add AI message
+      if (openAIAvailable) {
+        aiResponseText = await getOpenAIResponse(inputValue);
+      } else {
+        aiResponseText = await getAIResponse(inputValue, messages);
+      }
+      
       const aiMessage: ChatMessage = {
         id: uuidv4(),
         role: 'assistant',
@@ -278,7 +309,6 @@ const ChatInterface = ({ className = "", initialQuestion }: ChatInterfaceProps) 
         variant: "destructive",
       });
       
-      // Add error message
       const errorMessage: ChatMessage = {
         id: uuidv4(),
         role: 'assistant',
@@ -301,7 +331,6 @@ const ChatInterface = ({ className = "", initialQuestion }: ChatInterfaceProps) 
         timestamp: new Date(),
       }
     ]);
-    setConversationContext({});
     
     toast({
       title: "Conversation Reset",
@@ -311,7 +340,6 @@ const ChatInterface = ({ className = "", initialQuestion }: ChatInterfaceProps) 
 
   return (
     <div className={`flex flex-col w-full h-[80vh] max-h-[80vh] overflow-hidden rounded-2xl glass border shadow-sm ${className}`}>
-      {/* Chat header */}
       <div className="flex items-center justify-between p-4 border-b">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
@@ -319,7 +347,11 @@ const ChatInterface = ({ className = "", initialQuestion }: ChatInterfaceProps) 
           </div>
           <div>
             <h3 className="font-medium">Career Assistant</h3>
-            <p className="text-xs text-muted-foreground">Helping you find your path</p>
+            <p className="text-xs text-muted-foreground">
+              {openAIAvailable 
+                ? "Powered by OpenAI" 
+                : "Using local AI (limited capabilities)"}
+            </p>
           </div>
         </div>
         <Button 
@@ -332,7 +364,16 @@ const ChatInterface = ({ className = "", initialQuestion }: ChatInterfaceProps) 
         </Button>
       </div>
       
-      {/* Chat messages */}
+      {!openAIAvailable && (
+        <Alert variant="warning" className="m-4 bg-amber-50 dark:bg-amber-950/20">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            OpenAI API key not configured. Responses will use basic predefined logic.{" "}
+            <span className="font-medium">Click the settings icon above to add your API key.</span>
+          </AlertDescription>
+        </Alert>
+      )}
+      
       <div className="flex-1 overflow-y-auto p-4 pb-0 space-y-4">
         <AnimatePresence>
           {messages.map((message) => (
@@ -374,7 +415,6 @@ const ChatInterface = ({ className = "", initialQuestion }: ChatInterfaceProps) 
           ))}
         </AnimatePresence>
         
-        {/* Loading indicator */}
         {isLoading && (
           <motion.div
             initial={{ opacity: 0 }}
@@ -387,7 +427,9 @@ const ChatInterface = ({ className = "", initialQuestion }: ChatInterfaceProps) 
             <div className="p-4 rounded-xl max-w-[80%] bg-secondary">
               <div className="flex items-center gap-2">
                 <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
-                <span className="text-sm text-muted-foreground">Thinking...</span>
+                <span className="text-sm text-muted-foreground">
+                  {openAIAvailable ? "Processing with OpenAI..." : "Thinking..."}
+                </span>
               </div>
             </div>
           </motion.div>
@@ -396,7 +438,6 @@ const ChatInterface = ({ className = "", initialQuestion }: ChatInterfaceProps) 
         <div ref={messagesEndRef} />
       </div>
       
-      {/* Input area */}
       <div className="p-4 border-t">
         <form
           onSubmit={(e) => {

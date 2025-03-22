@@ -2,6 +2,7 @@
 import TransitionLayout from '@/components/TransitionLayout';
 import Navbar from '@/components/Navbar';
 import ChatInterface from '@/components/ChatInterface';
+import OpenAIConfig from '@/components/OpenAIConfig';
 import { useSearchParams } from 'react-router-dom';
 import { Toaster } from '@/components/ui/toaster';
 
@@ -18,9 +19,12 @@ const Chat = () => {
             <h1 className="text-3xl md:text-4xl font-display font-bold tracking-tight mb-4">
               Chat with Your Career Assistant
             </h1>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Ask questions about careers, required qualifications, job outlook, or any other career-related topics.
-            </p>
+            <div className="flex items-center justify-center space-x-2">
+              <p className="text-xl text-muted-foreground max-w-2xl">
+                Ask questions about careers, required qualifications, job outlook, or any other career-related topics.
+              </p>
+              <OpenAIConfig />
+            </div>
           </div>
           
           <ChatInterface initialQuestion={initialQuestion} />
