@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Settings, Check, X } from 'lucide-react';
+import { Settings, Check, X, Key } from 'lucide-react';
 import OpenAIService from '@/services/openai';
 import { toast } from '@/components/ui/use-toast';
 
@@ -69,8 +69,9 @@ const OpenAIConfig = () => {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="icon" className="relative">
-          <Settings className="h-4 w-4" />
+        <Button variant={isInitialized ? "outline" : "default"} className="ml-2 relative" size="sm">
+          <Key className="h-4 w-4 mr-2" />
+          {isInitialized ? "API Key Set" : "Set API Key"}
           {isInitialized && (
             <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-green-500">
               <span className="sr-only">OpenAI connected</span>
