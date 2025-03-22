@@ -11,9 +11,9 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/components/ui/use-toast';
+import { toast as sonnerToast } from 'sonner';
 import TransitionLayout from '@/components/TransitionLayout';
 import Navbar from '@/components/Navbar';
-import { useToast as useSonnerToast } from '@/components/ui/sonner';
 
 const questions = [
   {
@@ -110,7 +110,6 @@ const Assessment = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { toast: sonnerToast } = useSonnerToast();
   
   const currentQuestion = questions[currentStep];
   const progress = ((currentStep + 1) / questions.length) * 100;
@@ -487,3 +486,4 @@ const Assessment = () => {
 };
 
 export default Assessment;
+
