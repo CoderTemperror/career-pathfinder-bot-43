@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -14,6 +13,7 @@ import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/components/ui/use-toast';
 import TransitionLayout from '@/components/TransitionLayout';
 import Navbar from '@/components/Navbar';
+import { useToast as useSonnerToast } from '@/components/ui/sonner';
 
 const questions = [
   {
@@ -110,6 +110,7 @@ const Assessment = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { toast: sonnerToast } = useSonnerToast();
   
   const currentQuestion = questions[currentStep];
   const progress = ((currentStep + 1) / questions.length) * 100;
@@ -117,7 +118,6 @@ const Assessment = () => {
   const handleNext = () => {
     const currentQuestionId = currentQuestion.id;
     
-    // Validate current question has an answer
     if (!answers[currentQuestionId] || 
        (Array.isArray(answers[currentQuestionId]) && answers[currentQuestionId].length === 0)) {
       toast({
@@ -131,7 +131,6 @@ const Assessment = () => {
     if (currentStep < questions.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
-      // Assessment complete, process results
       handleComplete();
     }
   };
@@ -142,13 +141,179 @@ const Assessment = () => {
     }
   };
   
+  const analyzeResults = () => {
+    const education = answers.education || '';
+    const field = answers.field || '';
+    const skills = answers.skills || [];
+    const interests = answers.interests || [];
+    const personality = answers.personality || '';
+    const environments = answers.environments || [];
+    const careerGoals = answers.career_goals || '';
+    
+    let careerScores = {
+      'software-developer': 0,
+      'data-scientist': 0,
+      'healthcare-professional': 0,
+      'financial-analyst': 0,
+      'marketing-specialist': 0,
+      'educator': 0,
+      'creative-professional': 0,
+      'management': 0,
+      'research-scientist': 0,
+      'legal-professional': 0
+    };
+    
+    if (['bachelors', 'masters', 'doctorate'].includes(education)) {
+      careerScores['data-scientist'] += 15;
+      careerScores['research-scientist'] += 15;
+      careerScores['legal-professional'] += 10;
+    }
+    
+    if (['high-school', 'some-college', 'associates'].includes(education)) {
+      careerScores['creative-professional'] += 10;
+      careerScores['marketing-specialist'] += 5;
+    }
+    
+    const fieldLower = field.toLowerCase();
+    if (fieldLower.includes('comput') || fieldLower.includes('software') || fieldLower.includes('engineer')) {
+      careerScores['software-developer'] += 20;
+      careerScores['data-scientist'] += 15;
+    }
+    
+    if (fieldLower.includes('business') || fieldLower.includes('management') || fieldLower.includes('econom')) {
+      careerScores['financial-analyst'] += 20;
+      careerScores['management'] += 15;
+      careerScores['marketing-specialist'] += 10;
+    }
+    
+    if (fieldLower.includes('health') || fieldLower.includes('medic') || fieldLower.includes('nurs')) {
+      careerScores['healthcare-professional'] += 25;
+    }
+    
+    if (fieldLower.includes('educat') || fieldLower.includes('teach')) {
+      careerScores['educator'] += 25;
+    }
+    
+    if (fieldLower.includes('art') || fieldLower.includes('design') || fieldLower.includes('creativ')) {
+      careerScores['creative-professional'] += 25;
+    }
+    
+    if (fieldLower.includes('law') || fieldLower.includes('legal')) {
+      careerScores['legal-professional'] += 25;
+    }
+    
+    if (fieldLower.includes('science') || fieldLower.includes('research') || fieldLower.includes('biology') || fieldLower.includes('chemistry')) {
+      careerScores['research-scientist'] += 25;
+      careerScores['data-scientist'] += 10;
+    }
+    
+    if (skills.includes('programming')) {
+      careerScores['software-developer'] += 15;
+      careerScores['data-scientist'] += 10;
+    }
+    
+    if (skills.includes('analytics')) {
+      careerScores['data-scientist'] += 15;
+      careerScores['financial-analyst'] += 15;
+      careerScores['research-scientist'] += 10;
+    }
+    
+    if (skills.includes('leadership')) {
+      careerScores['management'] += 15;
+      careerScores['educator'] += 5;
+    }
+    
+    if (skills.includes('writing')) {
+      careerScores['marketing-specialist'] += 10;
+      careerScores['legal-professional'] += 10;
+      careerScores['creative-professional'] += 10;
+    }
+    
+    if (skills.includes('design')) {
+      careerScores['creative-professional'] += 15;
+      careerScores['marketing-specialist'] += 5;
+    }
+    
+    if (interests.includes('technology')) {
+      careerScores['software-developer'] += 15;
+      careerScores['data-scientist'] += 10;
+    }
+    
+    if (interests.includes('business')) {
+      careerScores['financial-analyst'] += 15;
+      careerScores['management'] += 15;
+      careerScores['marketing-specialist'] += 10;
+    }
+    
+    if (interests.includes('healthcare')) {
+      careerScores['healthcare-professional'] += 20;
+    }
+    
+    if (interests.includes('education')) {
+      careerScores['educator'] += 20;
+    }
+    
+    if (interests.includes('arts')) {
+      careerScores['creative-professional'] += 20;
+    }
+    
+    if (interests.includes('law')) {
+      careerScores['legal-professional'] += 20;
+    }
+    
+    if (interests.includes('sciences')) {
+      careerScores['research-scientist'] += 20;
+      careerScores['data-scientist'] += 10;
+    }
+    
+    if (personality === 'analytical') {
+      careerScores['data-scientist'] += 10;
+      careerScores['financial-analyst'] += 10;
+      careerScores['research-scientist'] += 10;
+    }
+    
+    if (personality === 'creative') {
+      careerScores['creative-professional'] += 15;
+      careerScores['marketing-specialist'] += 10;
+    }
+    
+    if (personality === 'social') {
+      careerScores['educator'] += 15;
+      careerScores['healthcare-professional'] += 10;
+      careerScores['marketing-specialist'] += 10;
+    }
+    
+    if (personality === 'leadership') {
+      careerScores['management'] += 15;
+    }
+    
+    const careerMatches = Object.entries(careerScores).map(([id, score]) => {
+      const percentage = Math.min(Math.round(score), 100);
+      return { id, matchScore: percentage };
+    }).sort((a, b) => b.matchScore - a.matchScore);
+    
+    const topMatches = careerMatches.slice(0, 3);
+    
+    sessionStorage.setItem('assessmentResults', JSON.stringify({
+      topMatches,
+      answers,
+      timestamp: new Date().toISOString()
+    }));
+    
+    sonnerToast("Assessment completed successfully!", {
+      description: "Navigating to your personalized career pathway...",
+    });
+    
+    return topMatches;
+  };
+  
   const handleComplete = () => {
     setLoading(true);
     
-    // Simulate processing delay
+    analyzeResults();
+    
     setTimeout(() => {
       setLoading(false);
-      // Navigate to results page
       navigate('/pathway');
     }, 2000);
   };
@@ -157,7 +322,6 @@ const Assessment = () => {
     setAnswers({ ...answers, [questionId]: value });
   };
   
-  // Render different input types based on question type
   const renderQuestionInput = () => {
     const question = currentQuestion;
     
@@ -263,7 +427,6 @@ const Assessment = () => {
             </p>
           </div>
           
-          {/* Progress indicator */}
           <div className="mb-8">
             <div className="flex justify-between text-sm mb-2">
               <span>Question {currentStep + 1} of {questions.length}</span>
@@ -272,7 +435,6 @@ const Assessment = () => {
             <Progress value={progress} className="h-2" />
           </div>
           
-          {/* Question card */}
           <Card className="mb-8">
             <CardContent className="p-6 md:p-8">
               <motion.div
@@ -289,7 +451,6 @@ const Assessment = () => {
             </CardContent>
           </Card>
           
-          {/* Navigation buttons */}
           <div className="flex justify-between">
             <Button
               variant="outline"

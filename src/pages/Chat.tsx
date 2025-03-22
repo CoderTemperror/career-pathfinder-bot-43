@@ -2,8 +2,12 @@
 import TransitionLayout from '@/components/TransitionLayout';
 import Navbar from '@/components/Navbar';
 import ChatInterface from '@/components/ChatInterface';
+import { useSearchParams } from 'react-router-dom';
 
 const Chat = () => {
+  const [searchParams] = useSearchParams();
+  const initialQuestion = searchParams.get('question') || undefined;
+  
   return (
     <TransitionLayout>
       <Navbar />
@@ -18,7 +22,7 @@ const Chat = () => {
             </p>
           </div>
           
-          <ChatInterface />
+          <ChatInterface initialQuestion={initialQuestion} />
         </div>
       </div>
     </TransitionLayout>
