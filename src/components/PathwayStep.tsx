@@ -1,7 +1,7 @@
 
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Book, Certificate, Briefcase, GraduationCap, Clock } from 'lucide-react';
+import { Book, Award, Briefcase, GraduationCap, Clock } from 'lucide-react';
 import { PathwayStep as PathwayStepType } from '@/types';
 
 interface PathwayStepProps {
@@ -20,7 +20,7 @@ const PathwayStep = ({ step, index, isLast }: PathwayStepProps) => {
       case 'Experience':
         return <Briefcase className="w-5 h-5" />;
       case 'Certification':
-        return <Certificate className="w-5 h-5" />;
+        return <Award className="w-5 h-5" />; // Changed from Certificate to Award
       default:
         return <Book className="w-5 h-5" />;
     }
