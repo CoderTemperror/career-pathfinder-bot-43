@@ -365,7 +365,7 @@ const ChatInterface = ({ className = "", initialQuestion }: ChatInterfaceProps) 
       </div>
       
       {!openAIAvailable && (
-        <Alert variant="warning" className="m-4 bg-amber-50 dark:bg-amber-950/20">
+        <Alert variant="default" className="m-4 bg-amber-50 dark:bg-amber-950/20">
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription>
             OpenAI API key not configured. Responses will use basic predefined logic.{" "}
