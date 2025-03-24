@@ -1,18 +1,75 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Book, Compass, GraduationCap, UserPlus } from 'lucide-react';
+import { Search, Book, Compass, GraduationCap, UserPlus, Filter } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuCheckboxItem,
+} from "@/components/ui/dropdown-menu";
 import TransitionLayout from '@/components/TransitionLayout';
 import Navbar from '@/components/Navbar';
 import { Resource } from '@/types';
+import { careerOptions } from '@/data/careerOptions';
 
-// Mock resources data
+// Transform career options into resources
+const generateResourcesFromCareers = () => {
+  const resources: Resource[] = [];
+  
+  careerOptions.forEach(career => {
+    // Add career resources
+    career.resources.forEach(resource => {
+      resources.push({
+        id: `${career.id}-${resource.title.toLowerCase().replace(/\s+/g, '-')}`,
+        title: resource.title,
+        description: `Resource for ${career.title} careers.`,
+        url: resource.url,
+        type: resource.type,
+        tags: [career.title.toLowerCase(), resource.type.toLowerCase()],
+      });
+    });
+    
+    // Add top colleges as resources
+    career.topColleges.forEach(college => {
+      resources.push({
+        id: `college-${college.id}`,
+        title: college.name,
+        description: `${college.location}, ${college.country}. Ranking: ${college.ranking}. Programs: ${college.programs.join(', ')}`,
+        url: college.website,
+        type: 'Article',
+        tags: ['college', 'education', career.title.toLowerCase(), college.country.toLowerCase()],
+      });
+    });
+    
+    // Add qualifying exams as resources
+    career.qualifyingExams.forEach(exam => {
+      resources.push({
+        id: `exam-${exam.id}`,
+        title: exam.name,
+        description: exam.description,
+        url: exam.website,
+        type: 'Article',
+        tags: ['exam', career.title.toLowerCase(), exam.level.toLowerCase()],
+      });
+    });
+  });
+  
+  return resources;
+};
+
+// Add these resources to our mock resources
+const careerResources = generateResourcesFromCareers();
+
+// Mock resources data (combine with career resources)
 const mockResources: Resource[] = [
   {
     id: 'r1',
@@ -62,29 +119,29 @@ const mockResources: Resource[] = [
     type: 'Tool',
     tags: ['resume', 'job search', 'career advice'],
   },
-  {
-    id: 'r7',
-    title: 'Fundamentals of Project Management',
-    description: 'Course covering project management methodologies, tools, and best practices for aspiring project and product managers.',
-    url: 'https://example.com/project-management',
-    type: 'Course',
-    tags: ['project management', 'agile', 'leadership'],
-  },
-  {
-    id: 'r8',
-    title: 'Networking Strategies for Career Growth',
-    description: 'Guide to building professional relationships and leveraging networking for career advancement.',
-    url: 'https://example.com/networking-guide',
-    type: 'Article',
-    tags: ['networking', 'career growth', 'soft skills'],
-  },
+  ...careerResources,
 ];
+
+// Get unique tags from resources
+const getAllTags = () => {
+  const tags = new Set<string>();
+  mockResources.forEach(resource => {
+    resource.tags.forEach(tag => tags.add(tag));
+  });
+  return Array.from(tags).sort();
+};
 
 const Resources = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('all');
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [availableTags, setAvailableTags] = useState<string[]>([]);
   
-  // Filter resources based on search query and active tab
+  useEffect(() => {
+    setAvailableTags(getAllTags());
+  }, []);
+  
+  // Filter resources based on search query, active tab, and selected tags
   const filteredResources = mockResources.filter(resource => {
     const matchesSearch = 
       resource.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -98,8 +155,24 @@ const Resources = () => {
       (activeTab === 'tools' && resource.type === 'Tool') ||
       (activeTab === 'communities' && resource.type === 'Community');
     
-    return matchesSearch && matchesTab;
+    const matchesTags = selectedTags.length === 0 || 
+      selectedTags.some(tag => resource.tags.includes(tag));
+    
+    return matchesSearch && matchesTab && matchesTags;
   });
+  
+  const handleTagToggle = (tag: string) => {
+    setSelectedTags(prev => 
+      prev.includes(tag) 
+        ? prev.filter(t => t !== tag) 
+        : [...prev, tag]
+    );
+  };
+  
+  const clearFilters = () => {
+    setSelectedTags([]);
+    setSearchQuery('');
+  };
   
   const getResourceIcon = (type: string) => {
     switch (type) {
@@ -126,7 +199,7 @@ const Resources = () => {
               Career Resources
             </h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Discover curated resources to help you develop skills and advance your career path.
+              Discover curated resources to help you develop skills, find colleges, prepare for exams, and advance your career path.
             </p>
           </div>
           
@@ -140,6 +213,54 @@ const Resources = () => {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10"
               />
+            </div>
+            
+            <div className="flex justify-between items-center mt-4">
+              <div className="flex items-center space-x-2">
+                {selectedTags.length > 0 && (
+                  <div className="flex flex-wrap gap-2 items-center">
+                    <span className="text-sm font-medium">Filtered by:</span>
+                    {selectedTags.map(tag => (
+                      <Badge 
+                        key={tag} 
+                        variant="secondary" 
+                        className="cursor-pointer"
+                        onClick={() => handleTagToggle(tag)}
+                      >
+                        {tag} ×
+                      </Badge>
+                    ))}
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={clearFilters}
+                      className="text-xs h-7"
+                    >
+                      Clear
+                    </Button>
+                  </div>
+                )}
+              </div>
+              
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="ml-auto flex items-center">
+                    <Filter className="h-4 w-4 mr-2" />
+                    Filter by Tags
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56 max-h-80 overflow-y-auto">
+                  {availableTags.map(tag => (
+                    <DropdownMenuCheckboxItem
+                      key={tag}
+                      checked={selectedTags.includes(tag)}
+                      onCheckedChange={() => handleTagToggle(tag)}
+                    >
+                      {tag}
+                    </DropdownMenuCheckboxItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
           
@@ -186,7 +307,16 @@ const Resources = () => {
                             <Separator />
                             <div className="flex flex-wrap gap-2">
                               {resource.tags.map((tag, i) => (
-                                <Badge key={i} variant="secondary" className="text-xs">
+                                <Badge 
+                                  key={i} 
+                                  variant="secondary" 
+                                  className="text-xs cursor-pointer hover:bg-secondary/80"
+                                  onClick={() => {
+                                    if (!selectedTags.includes(tag)) {
+                                      setSelectedTags([...selectedTags, tag]);
+                                    }
+                                  }}
+                                >
                                   {tag}
                                 </Badge>
                               ))}
@@ -207,6 +337,9 @@ const Resources = () => {
                 ) : (
                   <div className="text-center py-12">
                     <p className="text-muted-foreground">No resources found matching your criteria.</p>
+                    <Button variant="outline" className="mt-4" onClick={clearFilters}>
+                      Clear Filters
+                    </Button>
                   </div>
                 )}
               </div>

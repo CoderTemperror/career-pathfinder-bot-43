@@ -3,13 +3,20 @@ import TransitionLayout from '@/components/TransitionLayout';
 import Navbar from '@/components/Navbar';
 import ChatInterface from '@/components/ChatInterface';
 import OpenAIConfig from '@/components/OpenAIConfig';
+import SuggestedPrompts from '@/components/SuggestedPrompts';
 import { useSearchParams } from 'react-router-dom';
 import { Toaster } from '@/components/ui/toaster';
 import { Info } from 'lucide-react';
+import { useState } from 'react';
 
 const Chat = () => {
   const [searchParams] = useSearchParams();
   const initialQuestion = searchParams.get('question') || undefined;
+  const [currentPrompt, setCurrentPrompt] = useState<string>(initialQuestion || '');
+  
+  const handleSelectPrompt = (prompt: string) => {
+    setCurrentPrompt(prompt);
+  };
   
   return (
     <TransitionLayout>
@@ -35,7 +42,9 @@ const Chat = () => {
             </div>
           </div>
           
-          <ChatInterface initialQuestion={initialQuestion} />
+          <SuggestedPrompts onSelectPrompt={handleSelectPrompt} />
+          
+          <ChatInterface initialQuestion={currentPrompt} />
         </div>
       </div>
       <Toaster />

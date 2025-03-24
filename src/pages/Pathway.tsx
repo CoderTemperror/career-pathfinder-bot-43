@@ -2,17 +2,35 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Briefcase, Award, Download } from 'lucide-react';
+import { 
+  Briefcase, 
+  Award, 
+  Download, 
+  ChevronDown, 
+  ChevronUp, 
+  Clock, 
+  Building, 
+  Sparkles, 
+  AlertCircle,
+  CheckCircle,
+  ClipboardCheck,
+  GraduationCap,
+  TrendingUp 
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import TransitionLayout from '@/components/TransitionLayout';
 import Navbar from '@/components/Navbar';
 import PathwayStep from '@/components/PathwayStep';
 import CareerCard from '@/components/CareerCard';
 import { Career, CareerPathway, PathwayStep as PathwayStepType } from '@/types';
+import { careerOptions } from '@/data/careerOptions';
+import StorageService from '@/services/storage';
 
-// Mock career data
 const mockCareers: Career[] = [
   {
     id: 'software-engineer',
@@ -96,7 +114,6 @@ const mockCareers: Career[] = [
   },
 ];
 
-// Mock pathway data
 const mockPathways: Record<string, CareerPathway> = {
   'software-engineer': {
     careerId: 'software-engineer',
@@ -297,108 +314,9 @@ const Pathway = () => {
   const [selectedTab, setSelectedTab] = useState('matches');
   const [selectedCareerId, setSelectedCareerId] = useState<string | null>(null);
   const [selectedPathway, setSelectedPathway] = useState<CareerPathway | null>(null);
+  const [selectedCareerDetails, setSelectedCareerDetails] = useState<any | null>(null);
+  const [assessmentResults, setAssessmentResults] = useState<any | null>(null);
+  const [openSection, setOpenSection] = useState<string | null>("education");
   
-  // Use careerId from URL if present
-  useEffect(() => {
-    const careerIdFromUrl = searchParams.get('careerId');
-    if (careerIdFromUrl && mockPathways[careerIdFromUrl]) {
-      setSelectedCareerId(careerIdFromUrl);
-      setSelectedPathway(mockPathways[careerIdFromUrl]);
-      setSelectedTab('pathway');
-    }
-  }, [searchParams]);
-  
-  const handleSelectCareer = (careerId: string) => {
-    setSelectedCareerId(careerId);
-    setSelectedPathway(mockPathways[careerId]);
-    setSelectedTab('pathway');
-  };
-  
-  return (
-    <TransitionLayout>
-      <Navbar />
-      <div className="min-h-screen pt-24 pb-12 px-6">
-        <div className="max-w-5xl mx-auto space-y-6">
-          <div className="text-center mb-10">
-            <h1 className="text-3xl md:text-4xl font-display font-bold tracking-tight mb-4">
-              Your Career Pathway
-            </h1>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Explore careers that match your profile and discover the steps to achieve them.
-            </p>
-          </div>
-          
-          <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-8">
-              <TabsTrigger value="matches" className="text-base py-3">
-                Career Matches
-              </TabsTrigger>
-              <TabsTrigger value="pathway" className="text-base py-3" disabled={!selectedPathway}>
-                Career Pathway
-              </TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="matches" className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {mockCareers.map((career, index) => (
-                  <div key={career.id} onClick={() => handleSelectCareer(career.id)} className="cursor-pointer">
-                    <CareerCard career={career} index={index} />
-                  </div>
-                ))}
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="pathway" className="space-y-6">
-              {selectedPathway && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.5 }}
-                >
-                  <Card className="mb-8">
-                    <CardContent className="p-6">
-                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                        <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center">
-                            <Briefcase className="w-6 h-6 text-primary-foreground" />
-                          </div>
-                          <div>
-                            <h2 className="text-2xl font-semibold">{selectedPathway.careerTitle}</h2>
-                            <p className="text-muted-foreground">Career pathway guide</p>
-                          </div>
-                        </div>
-                        
-                        <Button variant="outline" className="flex items-center gap-2">
-                          <Download className="w-4 h-4" />
-                          <span>Save Pathway</span>
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                  
-                  <div className="relative pl-6">
-                    <div className="mb-6 flex items-center gap-2">
-                      <Award className="w-5 h-5 text-primary" />
-                      <h3 className="text-xl font-semibold">Pathway Steps</h3>
-                    </div>
-                    
-                    {selectedPathway.steps.map((step, index) => (
-                      <PathwayStep 
-                        key={step.id} 
-                        step={step} 
-                        index={index} 
-                        isLast={index === selectedPathway.steps.length - 1} 
-                      />
-                    ))}
-                  </div>
-                </motion.div>
-              )}
-            </TabsContent>
-          </Tabs>
-        </div>
-      </div>
-    </TransitionLayout>
-  );
-};
+  useEffect
 
-export default Pathway;

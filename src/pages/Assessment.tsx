@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowRight, ArrowLeft, CheckCircle, Loader2 } from 'lucide-react';
+import { ArrowRight, ArrowLeft, CheckCircle, Loader2, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -17,6 +17,7 @@ import TransitionLayout from '@/components/TransitionLayout';
 import Navbar from '@/components/Navbar';
 import OpenAIConfig from '@/components/OpenAIConfig';
 import OpenAIService from '@/services/openai';
+import StorageService from '@/services/storage';
 
 const questions = [
   {
@@ -112,13 +113,26 @@ const Assessment = () => {
   const [answers, setAnswers] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(false);
   const [openAIAvailable, setOpenAIAvailable] = useState(false);
+  const [isDataSaved, setIsDataSaved] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
   
   const currentQuestion = questions[currentStep];
   const progress = ((currentStep + 1) / questions.length) * 100;
   
+  // Load saved assessment data
   useEffect(() => {
+    const savedAnswers = StorageService.getAssessmentData();
+    if (savedAnswers) {
+      setAnswers(savedAnswers);
+      setIsDataSaved(true);
+      
+      // Show toast notification
+      sonnerToast.success("Previous assessment data loaded", {
+        description: "Your previous answers have been restored.",
+      });
+    }
+    
     setOpenAIAvailable(OpenAIService.isInitialized());
     
     const checkOpenAI = () => {
@@ -128,6 +142,14 @@ const Assessment = () => {
     window.addEventListener('storage', checkOpenAI);
     return () => window.removeEventListener('storage', checkOpenAI);
   }, []);
+  
+  // Auto-save answers when they change
+  useEffect(() => {
+    if (Object.keys(answers).length > 0) {
+      StorageService.saveAssessmentData(answers);
+      setIsDataSaved(true);
+    }
+  }, [answers]);
   
   const handleNext = () => {
     const currentQuestionId = currentQuestion.id;
@@ -153,6 +175,10 @@ const Assessment = () => {
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
     }
+  };
+  
+  const jumpToQuestion = (index: number) => {
+    setCurrentStep(index);
   };
   
   const analyzeResultsWithOpenAI = async () => {
@@ -182,37 +208,34 @@ const Assessment = () => {
       
       const prompt = `
 Based on the following user profile for career assessment, identify the top 3 most suitable career matches.
+Focus on providing detailed education paths, required qualifications, skills, and job opportunities.
 For each match, provide a match score percentage (0-100).
 
 USER PROFILE:
 ${userProfile}
 
-Respond in the following JSON format (and only this format):
+Respond in the following JSON format:
 {
   "topMatches": [
-    {"id": "career-id", "title": "Career Title", "matchScore": percentage, "description": "Brief reason why this matches"},
-    {"id": "career-id", "title": "Career Title", "matchScore": percentage, "description": "Brief reason why this matches"},
-    {"id": "career-id", "title": "Career Title", "matchScore": percentage, "description": "Brief reason why this matches"}
+    {"id": "career-id", "title": "Career Title", "matchScore": percentage, "description": "Brief reason why this matches", "educationPath": ["Step 1", "Step 2"], "requiredSkills": ["Skill 1", "Skill 2"], "jobOpportunities": ["Job 1", "Job 2"], "colleges": ["College 1", "College 2"], "exams": ["Exam 1", "Exam 2"]}
   ]
 }
 
 Choose career IDs from this list:
-- software-developer
-- data-scientist
-- healthcare-professional
-- financial-analyst
-- marketing-specialist
-- educator
-- creative-professional
-- management
-- research-scientist
-- legal-professional
+- computer-science
+- medicine
+- business-management
+- engineering
+- creative-arts
+- education
+- law
+- science-research
       `;
       
       const messages = [
         {
           role: 'system' as const,
-          content: 'You are a career assessment AI that analyzes user profiles and provides career matches in JSON format only.'
+          content: 'You are a career assessment AI that analyzes user profiles and provides detailed career matches with education paths, skills, job opportunities, and top colleges in JSON format.'
         },
         {
           role: 'user' as const,
@@ -221,8 +244,9 @@ Choose career IDs from this list:
       ];
       
       const response = await OpenAIService.generateChatCompletion(messages, {
+        model: 'gpt-4o-mini',
         temperature: 0.3,
-        max_tokens: 800
+        max_tokens: 1500
       });
       
       try {
@@ -423,14 +447,14 @@ Choose career IDs from this list:
         aiPowered: openAIAvailable
       }));
       
-      sonnerToast("Assessment completed successfully!", {
+      sonnerToast.success("Assessment completed successfully!", {
         description: "Navigating to your personalized career pathway...",
       });
       
       setTimeout(() => {
         setLoading(false);
         navigate('/pathway');
-      }, 2000);
+      }, 1500);
     } catch (error) {
       console.error('Error completing assessment:', error);
       setLoading(false);
@@ -443,8 +467,22 @@ Choose career IDs from this list:
     }
   };
   
+  const handleResetAssessment = () => {
+    if (confirm("Are you sure you want to reset all your answers? This cannot be undone.")) {
+      StorageService.clearAssessmentData();
+      setAnswers({});
+      setCurrentStep(0);
+      setIsDataSaved(false);
+      
+      sonnerToast.info("Assessment reset", {
+        description: "All your answers have been cleared.",
+      });
+    }
+  };
+  
   const handleInputChange = (questionId: string, value: string | string[]) => {
     setAnswers({ ...answers, [questionId]: value });
+    setIsDataSaved(false);
   };
   
   const renderQuestionInput = () => {
@@ -524,7 +562,7 @@ Choose career IDs from this list:
       opacity: 1, 
       y: 0,
       transition: {
-        duration: 0.5,
+        duration: 0.3,
         ease: [0.19, 1, 0.22, 1],
       } 
     },
@@ -532,7 +570,7 @@ Choose career IDs from this list:
       opacity: 0, 
       y: -20,
       transition: {
-        duration: 0.3,
+        duration: 0.2,
         ease: [0.19, 1, 0.22, 1],
       } 
     },
@@ -560,12 +598,29 @@ Choose career IDs from this list:
             )}
           </div>
           
-          <div className="mb-8">
+          <div className="mb-4">
             <div className="flex justify-between text-sm mb-2">
               <span>Question {currentStep + 1} of {questions.length}</span>
               <span>{Math.round(progress)}% Complete</span>
             </div>
             <Progress value={progress} className="h-2" />
+          </div>
+          
+          {/* Question navigation */}
+          <div className="mb-4 overflow-x-auto">
+            <div className="flex space-x-2 min-w-max">
+              {questions.map((q, index) => (
+                <Button
+                  key={q.id}
+                  variant={currentStep === index ? "default" : answers[q.id] ? "outline" : "ghost"}
+                  size="sm"
+                  onClick={() => jumpToQuestion(index)}
+                  className={`text-xs px-3 ${answers[q.id] ? "border-green-500" : ""} ${currentStep === index ? "pointer-events-none" : ""}`}
+                >
+                  {index + 1}. {q.id.charAt(0).toUpperCase() + q.id.slice(1).replace('_', ' ')}
+                </Button>
+              ))}
+            </div>
           </div>
           
           <Card className="mb-8">
@@ -585,16 +640,31 @@ Choose career IDs from this list:
           </Card>
           
           <div className="flex justify-between">
-            <Button
-              variant="outline"
-              onClick={handleBack}
-              disabled={currentStep === 0 || loading}
-            >
-              <ArrowLeft className="mr-2 w-4 h-4" />
-              Back
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={handleBack}
+                disabled={currentStep === 0 || loading}
+              >
+                <ArrowLeft className="mr-2 w-4 h-4" />
+                Back
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                onClick={handleResetAssessment} 
+                disabled={loading || Object.keys(answers).length === 0}
+                className="text-destructive border-destructive hover:bg-destructive/10"
+              >
+                Reset
+              </Button>
+            </div>
             
-            <Button onClick={handleNext} disabled={loading}>
+            <Button 
+              onClick={handleNext} 
+              disabled={loading}
+              className="relative"
+            >
               {loading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -611,6 +681,12 @@ Choose career IDs from this list:
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </>
               )}
+              
+              {!isDataSaved && !loading && (
+                <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-amber-500 animate-pulse">
+                  <span className="sr-only">Unsaved changes</span>
+                </span>
+              )}
             </Button>
           </div>
         </div>
@@ -620,4 +696,3 @@ Choose career IDs from this list:
 };
 
 export default Assessment;
-
