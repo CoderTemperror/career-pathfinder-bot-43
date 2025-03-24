@@ -318,5 +318,226 @@ const Pathway = () => {
   const [assessmentResults, setAssessmentResults] = useState<any | null>(null);
   const [openSection, setOpenSection] = useState<string | null>("education");
   
-  useEffect
+  useEffect(() => {
+    // Load any assessment results from storage
+    const loadAssessmentResults = async () => {
+      try {
+        const results = await StorageService.get('assessmentResults');
+        if (results) {
+          setAssessmentResults(results);
+        }
+      } catch (error) {
+        console.error('Failed to load assessment results:', error);
+      }
+    };
 
+    loadAssessmentResults();
+    
+    // Get careerId from URL params if present
+    const careerId = searchParams.get('careerId');
+    if (careerId) {
+      setSelectedCareerId(careerId);
+      const careerDetails = mockCareers.find((career) => career.id === careerId);
+      if (careerDetails) {
+        setSelectedCareerDetails(careerDetails);
+      }
+      const pathway = mockPathways[careerId];
+      if (pathway) {
+        setSelectedPathway(pathway);
+      }
+    }
+  }, [searchParams]);
+
+  const handleCareerSelect = (careerId: string) => {
+    setSelectedCareerId(careerId);
+    const careerDetails = mockCareers.find((career) => career.id === careerId);
+    if (careerDetails) {
+      setSelectedCareerDetails(careerDetails);
+    }
+    const pathway = mockPathways[careerId];
+    if (pathway) {
+      setSelectedPathway(pathway);
+    }
+  };
+
+  const toggleSection = (section: string) => {
+    setOpenSection(openSection === section ? null : section);
+  };
+
+  return (
+    <TransitionLayout>
+      <Navbar />
+      <div className="min-h-screen pt-24 pb-12 px-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-12">
+            <h1 className="text-3xl md:text-4xl font-display font-bold tracking-tight mb-4">
+              Your Career Pathway
+            </h1>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              Discover the steps to reach your career goals and explore the most suited paths based on your skills and interests.
+            </p>
+          </div>
+
+          <Tabs defaultValue={selectedTab} onValueChange={setSelectedTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="matches">Career Matches</TabsTrigger>
+              <TabsTrigger value="pathway" disabled={!selectedCareerId}>Career Pathway</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="matches" className="mt-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {mockCareers.map((career) => (
+                  <CareerCard 
+                    key={career.id}
+                    career={career}
+                    isSelected={selectedCareerId === career.id}
+                    onClick={() => handleCareerSelect(career.id)}
+                  />
+                ))}
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="pathway" className="mt-6">
+              {selectedPathway ? (
+                <div className="space-y-8">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+                    <div>
+                      <h2 className="text-2xl font-bold flex items-center gap-2">
+                        <Briefcase className="h-6 w-6" />
+                        {selectedPathway.careerTitle} Pathway
+                      </h2>
+                      <p className="text-muted-foreground mt-1">
+                        Follow these steps to build a successful career as a {selectedPathway.careerTitle}
+                      </p>
+                    </div>
+                    <Button variant="outline" className="flex items-center gap-2" onClick={() => window.print()}>
+                      <Download className="h-4 w-4" /> Download Pathway
+                    </Button>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div className="lg:col-span-2">
+                      <div className="mb-8">
+                        <h3 className="text-xl font-semibold mb-4">Pathway Steps</h3>
+                        <div className="space-y-1">
+                          {selectedPathway.steps.map((step, index) => (
+                            <PathwayStep 
+                              key={step.id}
+                              step={step}
+                              index={index}
+                              isLast={index === selectedPathway.steps.length - 1}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      {selectedCareerDetails && (
+                        <Card>
+                          <CardContent className="pt-6">
+                            <h3 className="text-xl font-semibold mb-4">Career Details</h3>
+                            
+                            <Accordion 
+                              type="single" 
+                              collapsible 
+                              defaultValue="skills"
+                              className="w-full"
+                            >
+                              <AccordionItem value="description">
+                                <AccordionTrigger>Description</AccordionTrigger>
+                                <AccordionContent>
+                                  <p className="text-sm">{selectedCareerDetails.description}</p>
+                                </AccordionContent>
+                              </AccordionItem>
+                              
+                              <AccordionItem value="skills">
+                                <AccordionTrigger>Required Skills</AccordionTrigger>
+                                <AccordionContent>
+                                  <div className="flex flex-wrap gap-2">
+                                    {selectedCareerDetails.skills.map((skill: any) => (
+                                      <Badge 
+                                        key={skill.name} 
+                                        variant={skill.level === 'Advanced' || skill.level === 'Expert' ? 'default' : 'secondary'}
+                                        className="px-2 py-1"
+                                      >
+                                        {skill.name} - {skill.level}
+                                      </Badge>
+                                    ))}
+                                  </div>
+                                </AccordionContent>
+                              </AccordionItem>
+                              
+                              <AccordionItem value="salary">
+                                <AccordionTrigger>Salary Range</AccordionTrigger>
+                                <AccordionContent>
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-sm">
+                                      {selectedCareerDetails.salary.currency}{selectedCareerDetails.salary.min.toLocaleString()}
+                                    </span>
+                                    <Separator className="w-12" />
+                                    <span className="text-sm">
+                                      {selectedCareerDetails.salary.currency}{selectedCareerDetails.salary.max.toLocaleString()}
+                                    </span>
+                                  </div>
+                                </AccordionContent>
+                              </AccordionItem>
+                              
+                              <AccordionItem value="outlook">
+                                <AccordionTrigger>Career Outlook</AccordionTrigger>
+                                <AccordionContent>
+                                  <div className="flex items-center gap-2">
+                                    {selectedCareerDetails.outlook === 'Excellent' && (
+                                      <Badge className="bg-green-500">
+                                        <TrendingUp className="w-3 h-3 mr-1" />
+                                        Excellent
+                                      </Badge>
+                                    )}
+                                    {selectedCareerDetails.outlook === 'Good' && (
+                                      <Badge className="bg-blue-500">
+                                        <CheckCircle className="w-3 h-3 mr-1" />
+                                        Good
+                                      </Badge>
+                                    )}
+                                    {selectedCareerDetails.outlook === 'Fair' && (
+                                      <Badge className="bg-yellow-500 text-black">
+                                        <AlertCircle className="w-3 h-3 mr-1" />
+                                        Fair
+                                      </Badge>
+                                    )}
+                                    {selectedCareerDetails.outlook === 'Poor' && (
+                                      <Badge className="bg-red-500">
+                                        <AlertCircle className="w-3 h-3 mr-1" />
+                                        Poor
+                                      </Badge>
+                                    )}
+                                  </div>
+                                </AccordionContent>
+                              </AccordionItem>
+                            </Accordion>
+                          </CardContent>
+                        </Card>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center p-12">
+                  <h3 className="text-xl font-medium mb-2">No Career Pathway Selected</h3>
+                  <p className="text-muted-foreground mb-6">
+                    Please select a career from the matches tab to view its pathway.
+                  </p>
+                  <Button onClick={() => setSelectedTab('matches')}>
+                    View Career Matches
+                  </Button>
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
+        </div>
+      </div>
+    </TransitionLayout>
+  );
+};
+
+export default Pathway;
