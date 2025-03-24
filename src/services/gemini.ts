@@ -1,91 +1,125 @@
 
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold, GenerativeModel } from '@google/generative-ai';
+import StorageService from './storage';
 
-interface GeminiConfigOptions {
+interface GeminiConfig {
   apiKey: string;
+  model: string;
+  temperature: number;
+  maxOutputTokens: number;
 }
 
+// Default configuration
+const defaultConfig: GeminiConfig = {
+  apiKey: '',
+  model: 'gemini-1.0-pro',
+  temperature: 0.7,
+  maxOutputTokens: 2048,
+};
+
+const GEMINI_CONFIG_KEY = 'gemini_config';
+
 class GeminiService {
-  private static instance: GeminiService;
-  private client: GoogleGenerativeAI | null = null;
-  private apiKey: string | null = null;
+  private config: GeminiConfig;
+  private genAI: GoogleGenerativeAI | null = null;
+  private model: GenerativeModel | null = null;
 
-  private constructor() {}
-
-  public static getInstance(): GeminiService {
-    if (!GeminiService.instance) {
-      GeminiService.instance = new GeminiService();
-    }
-    return GeminiService.instance;
+  constructor() {
+    // Load configuration from storage or use default
+    const savedConfig = StorageService.get(GEMINI_CONFIG_KEY);
+    this.config = savedConfig || { ...defaultConfig };
+    this.initializeModel();
   }
 
-  public initialize(options: GeminiConfigOptions): void {
-    this.apiKey = options.apiKey;
-    this.client = new GoogleGenerativeAI(this.apiKey);
-  }
-
-  public isInitialized(): boolean {
-    return !!this.client && !!this.apiKey;
-  }
-
-  public getApiKey(): string | null {
-    return this.apiKey;
-  }
-
-  public async generateChatCompletion(
-    messages: Array<{ role: string; content: string }>,
-    options: {
-      temperature?: number;
-      max_tokens?: number;
-    } = {}
-  ): Promise<string> {
-    if (!this.client) {
-      throw new Error('Gemini client not initialized. Call initialize() first.');
-    }
-
-    const { 
-      temperature = 0.7, 
-      max_tokens = 500 
-    } = options;
+  private initializeModel() {
+    if (!this.config.apiKey) return;
 
     try {
-      // Convert the OpenAI-style messages format to Gemini format
-      const geminiMessages = messages.map(msg => {
-        // Gemini uses "user" and "model" roles
-        const role = msg.role === 'assistant' ? 'model' : 'user';
-        return { role, parts: [{ text: msg.content }] };
-      });
-
-      // Filter out system messages as Gemini doesn't support them directly
-      const filteredMessages = geminiMessages.filter(msg => msg.role !== 'system');
-
-      // Get the system message if it exists
-      const systemMessage = messages.find(msg => msg.role === 'system')?.content || '';
-
-      // Create the Gemini model
-      const model = this.client.getGenerativeModel({
-        model: "gemini-1.5-flash",
-        systemInstruction: systemMessage,
-      });
-
-      // Create a chat session
-      const chat = model.startChat({
-        history: filteredMessages,
+      this.genAI = new GoogleGenerativeAI(this.config.apiKey);
+      this.model = this.genAI.getGenerativeModel({
+        model: this.config.model,
         generationConfig: {
-          temperature,
-          maxOutputTokens: max_tokens,
+          temperature: this.config.temperature,
+          maxOutputTokens: this.config.maxOutputTokens,
         },
+        safetySettings: [
+          {
+            category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+            threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+          },
+          {
+            category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+            threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+          },
+          {
+            category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+            threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+          },
+          {
+            category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+            threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+          },
+        ],
+      });
+    } catch (error) {
+      console.error('Error initializing Gemini model:', error);
+      this.genAI = null;
+      this.model = null;
+    }
+  }
+
+  public getConfig(): GeminiConfig {
+    return { ...this.config };
+  }
+
+  public saveConfig(config: Partial<GeminiConfig>): void {
+    this.config = { ...this.config, ...config };
+    StorageService.set(GEMINI_CONFIG_KEY, this.config);
+    this.initializeModel();
+  }
+
+  public async generateResponse(messages: Array<{ role: string; content: string }>, systemInstruction?: string): Promise<string> {
+    if (!this.model) {
+      throw new Error('Gemini model not initialized. Please set up your API key.');
+    }
+
+    try {
+      // Convert chat messages to Gemini format
+      const history = messages.map(msg => {
+        if (msg.role === 'user') {
+          return {
+            role: 'user',
+            parts: [{ text: msg.content }],
+          };
+        } else {
+          return {
+            role: 'model',
+            parts: [{ text: msg.content }],
+          };
+        }
       });
 
-      // Generate a response
-      const result = await chat.sendMessage("");
+      // Start a chat session
+      const chat = this.model.startChat({
+        history: history.slice(0, -1) as any,
+      });
+
+      // Get the last message (current prompt)
+      const lastMessage = messages[messages.length - 1];
+      
+      // Generate response
+      const result = await chat.sendMessage(lastMessage.content);
       const response = result.response;
       return response.text();
     } catch (error) {
-      console.error('Error generating Gemini chat completion:', error);
+      console.error('Error generating response from Gemini:', error);
       throw error;
     }
   }
+
+  public isConfigured(): boolean {
+    return Boolean(this.config.apiKey);
+  }
 }
 
-export default GeminiService.getInstance();
+export default new GeminiService();

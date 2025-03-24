@@ -6,6 +6,8 @@ export interface StorageService {
   saveChatHistory(messages: any[]): void;
   getChatHistory(): any[] | null;
   clearChatHistory(): void;
+  get(key: string): any | null;
+  set(key: string, data: any): void;
 }
 
 class LocalStorageService implements StorageService {
@@ -36,6 +38,16 @@ class LocalStorageService implements StorageService {
 
   public clearChatHistory(): void {
     localStorage.removeItem(this.CHAT_HISTORY_KEY);
+  }
+
+  // Generic methods for storing and retrieving any data
+  public get(key: string): any | null {
+    const data = localStorage.getItem(key);
+    return data ? JSON.parse(data) : null;
+  }
+
+  public set(key: string, data: any): void {
+    localStorage.setItem(key, JSON.stringify(data));
   }
 }
 

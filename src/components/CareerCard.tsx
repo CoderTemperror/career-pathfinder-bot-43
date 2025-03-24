@@ -1,116 +1,96 @@
 
 import { motion } from 'framer-motion';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Career } from '@/types';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Briefcase, TrendingUp, Banknote, Award } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Briefcase, TrendingUp, DollarSign, CheckCircle, AlertCircle } from 'lucide-react';
 
-interface CareerCardProps {
+export interface CareerCardProps {
   career: Career;
-  index: number;
+  isSelected?: boolean;
+  onClick: () => void;
 }
 
-const CareerCard = ({ career, index }: CareerCardProps) => {
-  const formatSalaryRange = (min: number, max: number, currency: string) => {
-    return `${currency}${min.toLocaleString()} - ${currency}${max.toLocaleString()}`;
-  };
-
-  // Determine color based on match score
-  const getMatchScoreColor = (score: number) => {
-    if (score >= 90) return 'bg-green-100 text-green-800 border-green-200';
-    if (score >= 70) return 'bg-blue-100 text-blue-800 border-blue-200';
-    if (score >= 50) return 'bg-amber-100 text-amber-800 border-amber-200';
-    return 'bg-gray-100 text-gray-800 border-gray-200';
-  };
-
-  // Determine color based on outlook
-  const getOutlookColor = (outlook: string) => {
-    switch (outlook) {
-      case 'Excellent': return 'text-green-600';
-      case 'Good': return 'text-blue-600';
-      case 'Fair': return 'text-amber-600';
-      case 'Poor': return 'text-red-600';
-      default: return 'text-gray-600';
-    }
-  };
-  
+const CareerCard = ({ career, isSelected = false, onClick }: CareerCardProps) => {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: index * 0.1 }}
-      className="w-full"
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
+      transition={{ duration: 0.2 }}
     >
-      <Card className="overflow-hidden h-full transition-all duration-300 hover:shadow-md">
-        <CardHeader className="pb-2">
-          <div className="flex items-start justify-between">
-            <div className="space-y-1">
-              <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getMatchScoreColor(career.matchScore)}`}>
-                {career.matchScore}% Match
-              </div>
-              <CardTitle className="text-xl">{career.title}</CardTitle>
+      <Card 
+        className={`cursor-pointer h-full transition-all ${
+          isSelected ? 'border-primary shadow-md' : 'hover:border-primary/50'
+        }`}
+        onClick={onClick}
+      >
+        <CardContent className="pt-6">
+          <div className="flex justify-between items-start mb-4">
+            <div className="flex items-center gap-2">
+              <Briefcase className="h-5 w-5 text-primary" />
+              <h3 className="font-semibold text-lg">{career.title}</h3>
             </div>
-            <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center">
-              <Briefcase className="w-5 h-5 text-foreground/70" />
-            </div>
+            <Badge variant={career.matchScore > 85 ? "default" : "secondary"}>
+              {career.matchScore}% Match
+            </Badge>
           </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-muted-foreground text-sm line-clamp-3">
+          
+          <p className="text-sm text-muted-foreground mb-4 line-clamp-3">
             {career.description}
           </p>
           
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <div className="text-xs text-muted-foreground flex items-center gap-1">
-                <Banknote className="w-3.5 h-3.5" />
-                <span>Salary Range</span>
-              </div>
-              <p className="text-sm font-medium">
-                {formatSalaryRange(career.salary.min, career.salary.max, career.salary.currency)}
-              </p>
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 text-sm">
+              <DollarSign className="h-4 w-4 text-green-500" />
+              <span>
+                {career.salary.currency}{career.salary.min.toLocaleString()} - {career.salary.currency}{career.salary.max.toLocaleString()}
+              </span>
             </div>
             
-            <div className="space-y-1">
-              <div className="text-xs text-muted-foreground flex items-center gap-1">
-                <TrendingUp className="w-3.5 h-3.5" />
-                <span>Job Outlook</span>
-              </div>
-              <p className={`text-sm font-medium ${getOutlookColor(career.outlook)}`}>
-                {career.outlook}
-              </p>
+            <div className="flex items-center gap-2 text-sm">
+              {career.outlook === 'Excellent' && (
+                <>
+                  <TrendingUp className="h-4 w-4 text-green-500" />
+                  <span className="text-green-700">Excellent Outlook</span>
+                </>
+              )}
+              {career.outlook === 'Good' && (
+                <>
+                  <CheckCircle className="h-4 w-4 text-blue-500" />
+                  <span className="text-blue-700">Good Outlook</span>
+                </>
+              )}
+              {career.outlook === 'Fair' || career.outlook === 'Poor' && (
+                <>
+                  <AlertCircle className="h-4 w-4 text-amber-500" />
+                  <span className="text-amber-700">{career.outlook} Outlook</span>
+                </>
+              )}
             </div>
           </div>
           
-          <div className="space-y-2">
-            <div className="text-xs text-muted-foreground flex items-center gap-1">
-              <Award className="w-3.5 h-3.5" />
-              <span>Key Skills</span>
-            </div>
-            <div className="flex flex-wrap gap-1.5">
-              {career.skills.slice(0, 4).map((skill, i) => (
-                <span 
-                  key={i} 
-                  className="bg-secondary px-2 py-1 rounded-md text-xs"
-                >
+          <div className="mt-4">
+            <h4 className="text-sm font-medium mb-2">Key Skills</h4>
+            <div className="flex flex-wrap gap-1">
+              {career.skills.slice(0, 4).map((skill) => (
+                <Badge key={skill.name} variant="outline" className="text-xs">
                   {skill.name}
-                </span>
+                </Badge>
               ))}
               {career.skills.length > 4 && (
-                <span className="bg-secondary px-2 py-1 rounded-md text-xs">
+                <Badge variant="outline" className="text-xs">
                   +{career.skills.length - 4} more
-                </span>
+                </Badge>
               )}
             </div>
           </div>
         </CardContent>
-        <CardFooter>
-          <Link to={`/pathway?careerId=${career.id}`} className="w-full">
-            <Button className="w-full">
-              View Career Pathway
-            </Button>
-          </Link>
+        <CardFooter className="pt-0">
+          {isSelected && (
+            <Badge variant="outline" className="bg-primary/10 border-primary">
+              Selected
+            </Badge>
+          )}
         </CardFooter>
       </Card>
     </motion.div>
