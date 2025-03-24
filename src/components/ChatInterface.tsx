@@ -10,6 +10,8 @@ import { chatMessageAnimation } from '@/utils/animations';
 import { v4 as uuidv4 } from 'uuid';
 import { toast } from '@/components/ui/use-toast';
 import OpenAIService from '@/services/openai';
+import GeminiService from '@/services/gemini';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const getAIResponse = async (
   message: string, 
@@ -196,6 +198,8 @@ const ChatInterface = ({ className = "", initialQuestion }: ChatInterfaceProps) 
   const [inputValue, setInputValue] = useState(initialQuestion || "");
   const [isLoading, setIsLoading] = useState(false);
   const [openAIAvailable, setOpenAIAvailable] = useState(false);
+  const [geminiAvailable, setGeminiAvailable] = useState(false);
+  const [selectedModel, setSelectedModel] = useState<string>("auto");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
   useEffect(() => {
@@ -205,26 +209,35 @@ const ChatInterface = ({ className = "", initialQuestion }: ChatInterfaceProps) 
   }, [messages]);
 
   useEffect(() => {
-    const checkOpenAI = () => {
-      const isInitialized = OpenAIService.isInitialized();
-      setOpenAIAvailable(isInitialized);
+    const checkAIServices = () => {
+      const isOpenAIInit = OpenAIService.isInitialized();
+      const isGeminiInit = GeminiService.isInitialized();
+      setOpenAIAvailable(isOpenAIInit);
+      setGeminiAvailable(isGeminiInit);
+      
+      // Auto-select the available model
+      if (selectedModel === "auto") {
+        if (isGeminiInit) setSelectedModel("gemini");
+        else if (isOpenAIInit) setSelectedModel("openai");
+        else setSelectedModel("fallback");
+      }
     };
 
-    checkOpenAI();
+    checkAIServices();
     
     const handleStorageChange = () => {
-      checkOpenAI();
+      checkAIServices();
     };
     
     window.addEventListener('storage', handleStorageChange);
     
-    const interval = setInterval(checkOpenAI, 5000);
+    const interval = setInterval(checkAIServices, 5000);
     
     return () => {
       window.removeEventListener('storage', handleStorageChange);
       clearInterval(interval);
     };
-  }, []);
+  }, [selectedModel]);
 
   useEffect(() => {
     if (initialQuestion) {
@@ -243,7 +256,8 @@ const ChatInterface = ({ className = "", initialQuestion }: ChatInterfaceProps) 
         role: 'system' as const,
         content: `You are a helpful career advisor. Your goal is to help users explore career options based on their skills, interests, education, and preferences. 
         Provide thoughtful, personalized career guidance. Ask follow-up questions to better understand the user's situation. 
-        Be concise but thorough, avoiding overly generic advice. Focus on providing actionable insights and specific career paths that might suit the user.`
+        Be concise but thorough, avoiding overly generic advice. Focus on providing actionable insights and specific career paths that might suit the user.
+        Only answer questions related to careers, education, and professional development. If asked about unrelated topics, politely explain that you can only assist with career guidance.`
       };
       
       const userMessageObj = {
@@ -269,6 +283,44 @@ const ChatInterface = ({ className = "", initialQuestion }: ChatInterfaceProps) 
     }
   };
 
+  const getGeminiResponse = async (userMessage: string): Promise<string> => {
+    try {
+      const conversationHistory = messages.map(msg => ({
+        role: msg.role as 'user' | 'assistant' | 'system',
+        content: msg.content
+      }));
+      
+      const systemMessage = {
+        role: 'system' as const,
+        content: `You are a helpful career advisor. Your goal is to help users explore career options based on their skills, interests, education, and preferences. 
+        Provide thoughtful, personalized career guidance. Ask follow-up questions to better understand the user's situation. 
+        Be concise but thorough, avoiding overly generic advice. Focus on providing actionable insights and specific career paths that might suit the user.
+        Only answer questions related to careers, education, and professional development. If asked about unrelated topics, politely explain that you can only assist with career guidance.`
+      };
+      
+      const userMessageObj = {
+        role: 'user' as const,
+        content: userMessage
+      };
+      
+      const messagesToSend = [
+        systemMessage,
+        ...conversationHistory.slice(-10),
+        userMessageObj
+      ];
+      
+      const response = await GeminiService.generateChatCompletion(messagesToSend, {
+        temperature: 0.7,
+        max_tokens: 500
+      });
+      
+      return response;
+    } catch (error) {
+      console.error("Error with Gemini:", error);
+      throw error;
+    }
+  };
+
   const handleSendMessage = async () => {
     if (!inputValue.trim() || isLoading) return;
     
@@ -285,10 +337,40 @@ const ChatInterface = ({ className = "", initialQuestion }: ChatInterfaceProps) 
     
     try {
       let aiResponseText: string;
+      let aiModelUsed = "fallback";
       
-      if (openAIAvailable) {
+      // Determine which AI service to use based on availability and user selection
+      if (selectedModel === "gemini" && geminiAvailable) {
+        aiResponseText = await getGeminiResponse(inputValue);
+        aiModelUsed = "gemini";
+      } else if (selectedModel === "openai" && openAIAvailable) {
         aiResponseText = await getOpenAIResponse(inputValue);
+        aiModelUsed = "openai";
+      } else if (selectedModel === "auto") {
+        // Auto mode - try Gemini first, then OpenAI, then fallback
+        if (geminiAvailable) {
+          try {
+            aiResponseText = await getGeminiResponse(inputValue);
+            aiModelUsed = "gemini";
+          } catch (error) {
+            console.error("Gemini error, falling back to OpenAI:", error);
+            if (openAIAvailable) {
+              aiResponseText = await getOpenAIResponse(inputValue);
+              aiModelUsed = "openai";
+            } else {
+              aiResponseText = await getAIResponse(inputValue, messages);
+              aiModelUsed = "fallback";
+            }
+          }
+        } else if (openAIAvailable) {
+          aiResponseText = await getOpenAIResponse(inputValue);
+          aiModelUsed = "openai";
+        } else {
+          aiResponseText = await getAIResponse(inputValue, messages);
+          aiModelUsed = "fallback";
+        }
       } else {
+        // Fallback to basic logic if no AI services are available
         aiResponseText = await getAIResponse(inputValue, messages);
       }
       
@@ -297,6 +379,7 @@ const ChatInterface = ({ className = "", initialQuestion }: ChatInterfaceProps) 
         role: 'assistant',
         content: aiResponseText,
         timestamp: new Date(),
+        metadata: { model: aiModelUsed }
       };
       
       setMessages(prev => [...prev, aiMessage]);
@@ -347,11 +430,32 @@ const ChatInterface = ({ className = "", initialQuestion }: ChatInterfaceProps) 
           </div>
           <div>
             <h3 className="font-medium">Career Assistant</h3>
-            <p className="text-xs text-muted-foreground">
-              {openAIAvailable 
-                ? "Powered by OpenAI" 
-                : "Using local AI (limited capabilities)"}
-            </p>
+            <div className="flex items-center gap-2">
+              <Select
+                value={selectedModel}
+                onValueChange={setSelectedModel}
+              >
+                <SelectTrigger className="w-[140px] h-8 text-xs">
+                  <SelectValue placeholder="Select model" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="auto">Auto-select model</SelectItem>
+                  {openAIAvailable && (
+                    <SelectItem value="openai">OpenAI</SelectItem>
+                  )}
+                  {geminiAvailable && (
+                    <SelectItem value="gemini">Gemini</SelectItem>
+                  )}
+                  <SelectItem value="fallback">Basic</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground hidden md:block">
+                {selectedModel === "gemini" && geminiAvailable && "Powered by Google Gemini"}
+                {selectedModel === "openai" && openAIAvailable && "Powered by OpenAI"}
+                {selectedModel === "auto" && (geminiAvailable || openAIAvailable) && "Using best available model"}
+                {(selectedModel === "fallback" || (!geminiAvailable && !openAIAvailable)) && "Using basic AI (limited capabilities)"}
+              </p>
+            </div>
           </div>
         </div>
         <Button 
@@ -364,11 +468,11 @@ const ChatInterface = ({ className = "", initialQuestion }: ChatInterfaceProps) 
         </Button>
       </div>
       
-      {!openAIAvailable && (
+      {!openAIAvailable && !geminiAvailable && (
         <Alert variant="default" className="m-4 bg-amber-50 dark:bg-amber-950/20">
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription>
-            OpenAI API key not configured. Responses will use basic predefined logic.{" "}
+            No AI model configured. Responses will use basic predefined logic.{" "}
             <span className="font-medium">Click the settings icon above to add your API key.</span>
           </AlertDescription>
         </Alert>
@@ -405,7 +509,13 @@ const ChatInterface = ({ className = "", initialQuestion }: ChatInterfaceProps) 
                 }`}
               >
                 <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                <div className="mt-1 text-right">
+                <div className="mt-1 text-right flex justify-end items-center gap-1">
+                  {message.metadata?.model && message.role === 'assistant' && (
+                    <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-secondary-foreground/10 text-secondary-foreground/70">
+                      {message.metadata.model === 'gemini' ? 'Gemini' : 
+                       message.metadata.model === 'openai' ? 'OpenAI' : 'Basic AI'}
+                    </span>
+                  )}
                   <span className={`text-xs ${message.role === 'user' ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}>
                     {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </span>
@@ -428,7 +538,9 @@ const ChatInterface = ({ className = "", initialQuestion }: ChatInterfaceProps) 
               <div className="flex items-center gap-2">
                 <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
                 <span className="text-sm text-muted-foreground">
-                  {openAIAvailable ? "Processing with OpenAI..." : "Thinking..."}
+                  {selectedModel === "gemini" && geminiAvailable ? "Processing with Gemini..." : 
+                   selectedModel === "openai" && openAIAvailable ? "Processing with OpenAI..." : 
+                   "Thinking..."}
                 </span>
               </div>
             </div>
@@ -468,3 +580,4 @@ const ChatInterface = ({ className = "", initialQuestion }: ChatInterfaceProps) 
 };
 
 export default ChatInterface;
+

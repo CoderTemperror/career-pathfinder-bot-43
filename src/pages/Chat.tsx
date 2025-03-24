@@ -3,6 +3,7 @@ import TransitionLayout from '@/components/TransitionLayout';
 import Navbar from '@/components/Navbar';
 import ChatInterface from '@/components/ChatInterface';
 import OpenAIConfig from '@/components/OpenAIConfig';
+import GeminiConfig from '@/components/GeminiConfig';
 import SuggestedPrompts from '@/components/SuggestedPrompts';
 import { useSearchParams } from 'react-router-dom';
 import { Toaster } from '@/components/ui/toaster';
@@ -35,9 +36,12 @@ const Chat = () => {
               <div className="flex items-center bg-muted p-3 rounded-lg mb-2 w-full max-w-md mx-auto">
                 <Info className="h-5 w-5 text-muted-foreground mr-2" />
                 <p className="text-sm text-muted-foreground">
-                  This assistant works best with an OpenAI API key
+                  Choose an AI model to power your career assistant
                 </p>
-                <OpenAIConfig />
+                <div className="flex ml-2 gap-2">
+                  <OpenAIConfig />
+                  <GeminiConfig />
+                </div>
               </div>
             </div>
           </div>
