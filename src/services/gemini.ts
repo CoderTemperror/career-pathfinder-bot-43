@@ -9,9 +9,9 @@ interface GeminiConfig {
   maxOutputTokens: number;
 }
 
-// Default configuration
+// Default configuration with the provided API key
 const defaultConfig: GeminiConfig = {
-  apiKey: '',
+  apiKey: 'AIzaSyA83FqsfRZI2S4_WGXjQ_lpVMKXUaKmFuw',
   model: 'gemini-1.0-pro',
   temperature: 0.7,
   maxOutputTokens: 2048,
@@ -25,9 +25,15 @@ class GeminiService {
   private model: GenerativeModel | null = null;
 
   constructor() {
-    // Load configuration from storage or use default
+    // Load configuration from storage or use default with API key
     const savedConfig = StorageService.get(GEMINI_CONFIG_KEY);
     this.config = savedConfig || { ...defaultConfig };
+    
+    // Ensure API key is set even if saved config exists
+    if (!this.config.apiKey) {
+      this.config.apiKey = defaultConfig.apiKey;
+    }
+    
     this.initializeModel();
   }
 
@@ -80,7 +86,14 @@ class GeminiService {
 
   public async generateResponse(messages: Array<{ role: string; content: string }>, systemInstruction?: string): Promise<string> {
     if (!this.model) {
-      throw new Error('Gemini model not initialized. Please set up your API key.');
+      // Try to initialize with default API key if not initialized
+      this.config.apiKey = defaultConfig.apiKey;
+      this.initializeModel();
+      
+      // If still no model, throw error
+      if (!this.model) {
+        throw new Error('Gemini model not initialized properly.');
+      }
     }
 
     try {
@@ -117,13 +130,15 @@ class GeminiService {
     }
   }
 
-  // Add methods to match what's being called in the components
-  public initialize(options: { apiKey: string }): void {
-    this.saveConfig({ apiKey: options.apiKey });
+  // API methods used by components
+  public initialize(options: { apiKey?: string } = {}): void {
+    // If no API key provided, use the default one
+    const apiKey = options.apiKey || defaultConfig.apiKey;
+    this.saveConfig({ apiKey });
   }
 
   public isInitialized(): boolean {
-    return Boolean(this.config.apiKey);
+    return Boolean(this.model);
   }
 
   public async generateChatCompletion(

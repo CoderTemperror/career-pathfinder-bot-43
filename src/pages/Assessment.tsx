@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -18,6 +17,8 @@ import Navbar from '@/components/Navbar';
 import OpenAIConfig from '@/components/OpenAIConfig';
 import OpenAIService from '@/services/openai';
 import StorageService from '@/services/storage';
+import { Sparkles } from 'lucide-react';
+import GeminiService from '@/services/gemini';
 
 const questions = [
   {
@@ -120,14 +121,12 @@ const Assessment = () => {
   const currentQuestion = questions[currentStep];
   const progress = ((currentStep + 1) / questions.length) * 100;
   
-  // Load saved assessment data
   useEffect(() => {
     const savedAnswers = StorageService.getAssessmentData();
     if (savedAnswers) {
       setAnswers(savedAnswers);
       setIsDataSaved(true);
       
-      // Show toast notification
       sonnerToast.success("Previous assessment data loaded", {
         description: "Your previous answers have been restored.",
       });
@@ -143,7 +142,6 @@ const Assessment = () => {
     return () => window.removeEventListener('storage', checkOpenAI);
   }, []);
   
-  // Auto-save answers when they change
   useEffect(() => {
     if (Object.keys(answers).length > 0) {
       StorageService.saveAssessmentData(answers);
@@ -181,7 +179,7 @@ const Assessment = () => {
     setCurrentStep(index);
   };
   
-  const analyzeResultsWithOpenAI = async () => {
+  const analyzeResultsWithGemini = async () => {
     try {
       const userProfile = Object.entries(answers).map(([questionId, answer]) => {
         const question = questions.find(q => q.id === questionId);
@@ -243,8 +241,7 @@ Choose career IDs from this list:
         }
       ];
       
-      const response = await OpenAIService.generateChatCompletion(messages, {
-        model: 'gpt-4o-mini',
+      const response = await GeminiService.generateChatCompletion(messages, {
         temperature: 0.3,
         max_tokens: 1500
       });
@@ -252,22 +249,22 @@ Choose career IDs from this list:
       try {
         const jsonMatch = response.match(/\{[\s\S]*\}/);
         if (!jsonMatch) {
-          throw new Error('Invalid response format from OpenAI');
+          throw new Error('Invalid response format from Gemini');
         }
         
         const jsonResponse = JSON.parse(jsonMatch[0]);
         
         if (!jsonResponse.topMatches || !Array.isArray(jsonResponse.topMatches)) {
-          throw new Error('Invalid response format from OpenAI');
+          throw new Error('Invalid response format from Gemini');
         }
         
         return jsonResponse.topMatches;
       } catch (parseError) {
-        console.error('Error parsing OpenAI response:', parseError);
+        console.error('Error parsing Gemini response:', parseError);
         throw new Error('Failed to parse AI response');
       }
     } catch (error) {
-      console.error('Error analyzing results with OpenAI:', error);
+      console.error('Error analyzing results with Gemini:', error);
       throw error;
     }
   };
@@ -434,9 +431,10 @@ Choose career IDs from this list:
     try {
       let results;
       
-      if (openAIAvailable) {
-        results = await analyzeResultsWithOpenAI();
-      } else {
+      try {
+        results = await analyzeResultsWithGemini();
+      } catch (error) {
+        console.error('Gemini analysis failed, using local fallback:', error);
         results = analyzeResultsLocally();
       }
       
@@ -444,7 +442,7 @@ Choose career IDs from this list:
         topMatches: results,
         answers,
         timestamp: new Date().toISOString(),
-        aiPowered: openAIAvailable
+        aiPowered: true
       }));
       
       sonnerToast.success("Assessment completed successfully!", {
@@ -585,17 +583,15 @@ Choose career IDs from this list:
             <h1 className="text-3xl md:text-4xl font-display font-bold tracking-tight mb-4">
               Career Assessment
             </h1>
-            <div className="flex items-center justify-center space-x-2">
+            <div className="flex items-center justify-center">
               <p className="text-xl text-muted-foreground max-w-2xl">
                 Answer a few questions to help us find the best career matches for you.
               </p>
-              <OpenAIConfig />
             </div>
-            {!openAIAvailable && (
-              <p className="text-sm text-amber-600 dark:text-amber-400 mt-2">
-                For more accurate results, configure an OpenAI API key.
-              </p>
-            )}
+            <p className="text-sm text-primary mt-2 flex items-center justify-center gap-2">
+              <Sparkles className="h-4 w-4" />
+              Powered by Google Gemini AI
+            </p>
           </div>
           
           <div className="mb-4">
@@ -606,7 +602,6 @@ Choose career IDs from this list:
             <Progress value={progress} className="h-2" />
           </div>
           
-          {/* Question navigation */}
           <div className="mb-4 overflow-x-auto">
             <div className="flex space-x-2 min-w-max">
               {questions.map((q, index) => (

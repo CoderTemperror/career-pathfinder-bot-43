@@ -2,12 +2,10 @@
 import TransitionLayout from '@/components/TransitionLayout';
 import Navbar from '@/components/Navbar';
 import ChatInterface from '@/components/ChatInterface';
-import OpenAIConfig from '@/components/OpenAIConfig';
-import GeminiConfig from '@/components/GeminiConfig';
 import SuggestedPrompts from '@/components/SuggestedPrompts';
 import { useSearchParams } from 'react-router-dom';
 import { Toaster } from '@/components/ui/toaster';
-import { Info } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 import { useState } from 'react';
 
 const Chat = () => {
@@ -32,16 +30,12 @@ const Chat = () => {
               Ask questions about careers, required qualifications, job outlook, or any other career-related topics.
             </p>
             
-            <div className="flex flex-col items-center justify-center mt-4 mb-2">
-              <div className="flex items-center bg-muted p-3 rounded-lg mb-2 w-full max-w-md mx-auto">
-                <Info className="h-5 w-5 text-muted-foreground mr-2" />
-                <p className="text-sm text-muted-foreground">
-                  Choose an AI model to power your career assistant
+            <div className="flex justify-center items-center mt-4 mb-2">
+              <div className="flex items-center bg-primary/10 p-3 rounded-lg mb-2">
+                <Sparkles className="h-5 w-5 text-primary mr-2" />
+                <p className="text-sm">
+                  Powered by Google Gemini AI
                 </p>
-                <div className="flex ml-2 gap-2">
-                  <OpenAIConfig />
-                  <GeminiConfig />
-                </div>
               </div>
             </div>
           </div>
