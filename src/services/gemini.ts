@@ -12,8 +12,8 @@ interface GeminiConfig {
 // Default configuration with the provided API key
 const defaultConfig: GeminiConfig = {
   apiKey: 'AIzaSyA83FqsfRZI2S4_WGXjQ_lpVMKXUaKmFuw',
-  model: 'gemini-1.0-pro',
-  temperature: 0.7,
+  model: 'gemini-pro-vision',
+  temperature: 0.4,
   maxOutputTokens: 2048,
 };
 

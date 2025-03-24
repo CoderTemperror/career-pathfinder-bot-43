@@ -34,7 +34,7 @@ const Chat = () => {
               <div className="flex items-center bg-primary/10 p-3 rounded-lg mb-2">
                 <Sparkles className="h-5 w-5 text-primary mr-2" />
                 <p className="text-sm">
-                  Powered by Google Gemini AI
+                  Powered by Google Gemini Pro Vision
                 </p>
               </div>
             </div>

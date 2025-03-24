@@ -50,6 +50,12 @@ const GeminiConfig = () => {
               </p>
             </div>
           </div>
+          <div className="flex items-center space-x-2">
+            <div className="flex-1">
+              <p className="text-sm font-medium">Model:</p>
+              <p className="text-sm text-muted-foreground">Gemini Pro Vision</p>
+            </div>
+          </div>
           <div className="space-y-2">
             <p className="text-xs text-muted-foreground">
               This application uses the Google Gemini API to provide AI-powered career guidance.
