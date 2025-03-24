@@ -117,8 +117,21 @@ class GeminiService {
     }
   }
 
-  public isConfigured(): boolean {
+  // Add methods to match what's being called in the components
+  public initialize(options: { apiKey: string }): void {
+    this.saveConfig({ apiKey: options.apiKey });
+  }
+
+  public isInitialized(): boolean {
     return Boolean(this.config.apiKey);
+  }
+
+  public async generateChatCompletion(
+    messages: Array<{ role: string; content: string }>,
+    options: { temperature?: number; max_tokens?: number } = {}
+  ): Promise<string> {
+    // Use the existing generateResponse method
+    return this.generateResponse(messages);
   }
 }
 

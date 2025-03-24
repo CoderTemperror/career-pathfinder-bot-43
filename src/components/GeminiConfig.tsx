@@ -14,16 +14,11 @@ const GeminiConfig = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
-    // Check if API key is stored in localStorage
-    const storedApiKey = localStorage.getItem('gemini_api_key');
-    if (storedApiKey) {
-      setApiKey(storedApiKey);
-      try {
-        GeminiService.initialize({ apiKey: storedApiKey });
-        setIsInitialized(true);
-      } catch (error) {
-        console.error('Failed to initialize Gemini service:', error);
-      }
+    // Check if API key is already stored in the service
+    const config = GeminiService.getConfig();
+    if (config.apiKey) {
+      setApiKey(config.apiKey);
+      setIsInitialized(true);
     }
   }, []);
 
@@ -38,8 +33,7 @@ const GeminiConfig = () => {
     }
 
     try {
-      GeminiService.initialize({ apiKey });
-      localStorage.setItem('gemini_api_key', apiKey);
+      GeminiService.saveConfig({ apiKey });
       setIsInitialized(true);
       toast({
         title: "Success",
@@ -57,7 +51,7 @@ const GeminiConfig = () => {
   };
 
   const handleClearApiKey = () => {
-    localStorage.removeItem('gemini_api_key');
+    GeminiService.saveConfig({ apiKey: '' });
     setApiKey('');
     setIsInitialized(false);
     toast({
