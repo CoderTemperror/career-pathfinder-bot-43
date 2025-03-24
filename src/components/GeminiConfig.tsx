@@ -53,7 +53,7 @@ const GeminiConfig = () => {
           <div className="flex items-center space-x-2">
             <div className="flex-1">
               <p className="text-sm font-medium">Model:</p>
-              <p className="text-sm text-muted-foreground">Gemini Pro Vision</p>
+              <p className="text-sm text-muted-foreground">Gemini 2.0 Flash (Free Tier)</p>
             </div>
           </div>
           <div className="space-y-2">

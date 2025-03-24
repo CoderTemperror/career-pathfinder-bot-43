@@ -1,4 +1,3 @@
-
 import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold, GenerativeModel } from '@google/generative-ai';
 import StorageService from './storage';
 
@@ -12,7 +11,7 @@ interface GeminiConfig {
 // Default configuration with the provided API key
 const defaultConfig: GeminiConfig = {
   apiKey: 'AIzaSyA83FqsfRZI2S4_WGXjQ_lpVMKXUaKmFuw',
-  model: 'gemini-pro-vision',
+  model: 'gemini-2.0-flash',
   temperature: 0.4,
   maxOutputTokens: 2048,
 };
