@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Send, Sparkles, RotateCcw, Loader2 } from 'lucide-react';
@@ -32,14 +31,12 @@ const ChatInterface = ({ className = "", initialQuestion, mbtiType }: ChatInterf
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
-  // Scroll to bottom when messages change
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [messages]);
 
-  // Process initial question if provided
   useEffect(() => {
     if (initialQuestion) {
       handleSendMessage();
@@ -58,7 +55,6 @@ const ChatInterface = ({ className = "", initialQuestion, mbtiType }: ChatInterf
         Be concise but thorough, avoiding overly generic advice. Focus on providing actionable insights and specific career paths that might suit the user.
         Only answer questions related to careers, education, and professional development. If asked about unrelated topics, politely explain that you can only assist with career guidance.`;
       
-      // Add MBTI type information if available
       if (mbtiType) {
         systemPrompt += `\nThe user's MBTI type is ${mbtiType}. Consider this personality type when providing career advice and suggestions.`;
       }
@@ -235,11 +231,19 @@ const ChatInterface = ({ className = "", initialQuestion, mbtiType }: ChatInterf
                       h3: ({ node, ...props }) => (
                         <h3 className="text-sm font-bold my-2" {...props} />
                       ),
-                      code: ({ node, inline, ...props }) => (
-                        inline ? 
-                          <code className="bg-black/10 px-1 py-0.5 rounded" {...props} /> :
-                          <code className="block bg-black/10 p-2 my-2 rounded overflow-x-auto" {...props} />
-                      ),
+                      code: ({ node, className, children, ...props }: any) => {
+                        const match = /language-(\w+)/.exec(className || '');
+                        const isInline = !className;
+                        return isInline ? (
+                          <code className="bg-black/10 px-1 py-0.5 rounded" {...props}>
+                            {children}
+                          </code>
+                        ) : (
+                          <code className="block bg-black/10 p-2 my-2 rounded overflow-x-auto" {...props}>
+                            {children}
+                          </code>
+                        );
+                      },
                       pre: ({ node, ...props }) => (
                         <pre className="bg-black/10 p-2 my-2 rounded overflow-x-auto" {...props} />
                       ),
