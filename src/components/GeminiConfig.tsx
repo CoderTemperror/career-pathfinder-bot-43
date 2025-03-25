@@ -8,6 +8,7 @@ import GeminiService from '@/services/gemini';
 const GeminiConfig = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [modelName, setModelName] = useState('gemini-2.0-flash');
 
   useEffect(() => {
     // Check if Gemini service is initialized
@@ -18,6 +19,10 @@ const GeminiConfig = () => {
     if (!isInit) {
       GeminiService.initialize();
     }
+
+    // Get the model configuration
+    const config = GeminiService.getConfig();
+    setModelName(config.model);
   }, []);
 
   return (
@@ -53,7 +58,7 @@ const GeminiConfig = () => {
           <div className="flex items-center space-x-2">
             <div className="flex-1">
               <p className="text-sm font-medium">Model:</p>
-              <p className="text-sm text-muted-foreground">Gemini 2.0 Flash (Free Tier)</p>
+              <p className="text-sm text-muted-foreground">{modelName} (Free Tier)</p>
             </div>
           </div>
           <div className="space-y-2">

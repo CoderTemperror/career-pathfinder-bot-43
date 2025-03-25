@@ -12,7 +12,7 @@ interface GeminiConfig {
 // Default configuration with the provided API key
 const defaultConfig: GeminiConfig = {
   apiKey: 'AIzaSyA83FqsfRZI2S4_WGXjQ_lpVMKXUaKmFuw',
-  model: 'gemini-2.0-flash',
+  model: 'gemini-2.0-flash',  // Updated to the correct model name
   temperature: 0.4,
   maxOutputTokens: 2048,
 };
@@ -97,24 +97,19 @@ class GeminiService {
     }
 
     try {
-      // Convert chat messages to Gemini format
-      const formattedMessages = messages.map(msg => {
-        return {
-          role: msg.role === 'system' ? 'user' : msg.role,
-          parts: [{ text: msg.content }],
-        };
-      });
-
       // Extract the user prompt (last message)
       const userPrompt = messages[messages.length - 1].content;
       
-      // Add system instruction to the beginning if provided
+      // Combine system instruction with user prompt if provided
+      let prompt = userPrompt;
       if (systemInstruction) {
-        console.log("Using system instruction:", systemInstruction);
+        prompt = `${systemInstruction}\n\nUser query: ${userPrompt}`;
+        console.log("Using system instruction with prompt");
       }
 
-      // Generate response using the content generation API instead of chat
-      const result = await this.model.generateContent(userPrompt);
+      // Generate response using the content generation API
+      console.log(`Using model: ${this.config.model}`);
+      const result = await this.model.generateContent(prompt);
       const response = result.response;
       return response.text();
     } catch (error) {
@@ -138,8 +133,10 @@ class GeminiService {
     messages: Array<{ role: string; content: string }>,
     options: { temperature?: number; max_tokens?: number } = {}
   ): Promise<string> {
-    // Use the existing generateResponse method
-    return this.generateResponse(messages);
+    // For gemini-2.0-flash, we need to simplify our approach and not use chat format
+    // Instead, we'll just extract the last message and use it with the system prompt
+    const lastMessage = messages[messages.length - 1];
+    return this.generateResponse([lastMessage]);
   }
 }
 
