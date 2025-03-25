@@ -12,7 +12,7 @@ interface GeminiConfig {
 // Default configuration with the provided API key
 const defaultConfig: GeminiConfig = {
   apiKey: 'AIzaSyA83FqsfRZI2S4_WGXjQ_lpVMKXUaKmFuw',
-  model: 'gemini-2.0-flash',  // Updated to the correct model name
+  model: 'gemini-2.0-flash',  // This is the correct model name
   temperature: 0.4,
   maxOutputTokens: 2048,
 };
@@ -42,6 +42,7 @@ class GeminiService {
 
     try {
       this.genAI = new GoogleGenerativeAI(this.config.apiKey);
+      console.log(`Initializing model: ${this.config.model}`); // Add logging
       this.model = this.genAI.getGenerativeModel({
         model: this.config.model,
         generationConfig: {
@@ -135,8 +136,10 @@ class GeminiService {
   ): Promise<string> {
     // For gemini-2.0-flash, we need to simplify our approach and not use chat format
     // Instead, we'll just extract the last message and use it with the system prompt
-    const lastMessage = messages[messages.length - 1];
-    return this.generateResponse([lastMessage]);
+    const lastUserMessage = messages.find(msg => msg.role === 'user') || messages[messages.length - 1];
+    const systemMessage = messages.find(msg => msg.role === 'system');
+    
+    return this.generateResponse([lastUserMessage], systemMessage?.content);
   }
 }
 
