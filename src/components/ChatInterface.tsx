@@ -10,13 +10,16 @@ import { chatMessageAnimation } from '@/utils/animations';
 import { v4 as uuidv4 } from 'uuid';
 import { toast } from '@/components/ui/use-toast';
 import GeminiService from '@/services/gemini';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 interface ChatInterfaceProps {
   className?: string;
   initialQuestion?: string;
+  mbtiType?: string;
 }
 
-const ChatInterface = ({ className = "", initialQuestion }: ChatInterfaceProps) => {
+const ChatInterface = ({ className = "", initialQuestion, mbtiType }: ChatInterfaceProps) => {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: '1',
@@ -50,12 +53,19 @@ const ChatInterface = ({ className = "", initialQuestion }: ChatInterfaceProps) 
         content: msg.content
       }));
       
-      const systemMessage = {
-        role: 'system' as const,
-        content: `You are a helpful career advisor. Your goal is to help users explore career options based on their skills, interests, education, and preferences. 
+      let systemPrompt = `You are a helpful career advisor. Your goal is to help users explore career options based on their skills, interests, education, and preferences. 
         Provide thoughtful, personalized career guidance. Ask follow-up questions to better understand the user's situation. 
         Be concise but thorough, avoiding overly generic advice. Focus on providing actionable insights and specific career paths that might suit the user.
-        Only answer questions related to careers, education, and professional development. If asked about unrelated topics, politely explain that you can only assist with career guidance.`
+        Only answer questions related to careers, education, and professional development. If asked about unrelated topics, politely explain that you can only assist with career guidance.`;
+      
+      // Add MBTI type information if available
+      if (mbtiType) {
+        systemPrompt += `\nThe user's MBTI type is ${mbtiType}. Consider this personality type when providing career advice and suggestions.`;
+      }
+      
+      const systemMessage = {
+        role: 'system' as const,
+        content: systemPrompt
       };
       
       const userMessageObj = {
@@ -197,7 +207,16 @@ const ChatInterface = ({ className = "", initialQuestion }: ChatInterfaceProps) 
                     : 'bg-primary text-primary-foreground'
                 }`}
               >
-                <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                {message.role === 'assistant' ? (
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
+                    className="text-sm whitespace-pre-wrap prose prose-sm max-w-none dark:prose-invert"
+                  >
+                    {message.content}
+                  </ReactMarkdown>
+                ) : (
+                  <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                )}
                 <div className="mt-1 text-right flex justify-end items-center gap-1">
                   {message.role === 'assistant' && (
                     <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-secondary-foreground/10 text-secondary-foreground/70">
@@ -224,8 +243,12 @@ const ChatInterface = ({ className = "", initialQuestion }: ChatInterfaceProps) 
             </Avatar>
             <div className="p-4 rounded-xl max-w-[80%] bg-secondary">
               <div className="flex items-center gap-2">
-                <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
-                <span className="text-sm text-muted-foreground">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" />
+                  <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce [animation-delay:0.2s]" />
+                  <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce [animation-delay:0.4s]" />
+                </div>
+                <span className="text-sm text-muted-foreground ml-2">
                   Processing with Gemini...
                 </span>
               </div>

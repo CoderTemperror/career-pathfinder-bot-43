@@ -11,6 +11,7 @@ import { useState } from 'react';
 const Chat = () => {
   const [searchParams] = useSearchParams();
   const initialQuestion = searchParams.get('question') || undefined;
+  const mbtiType = searchParams.get('mbti') || undefined;
   const [currentPrompt, setCurrentPrompt] = useState<string>(initialQuestion || '');
   
   const handleSelectPrompt = (prompt: string) => {
@@ -38,11 +39,19 @@ const Chat = () => {
                 </p>
               </div>
             </div>
+            
+            {mbtiType && (
+              <div className="flex justify-center mt-2">
+                <div className="bg-secondary px-3 py-1 rounded-full text-sm">
+                  MBTI: {mbtiType}
+                </div>
+              </div>
+            )}
           </div>
           
           <SuggestedPrompts onSelectPrompt={handleSelectPrompt} />
           
-          <ChatInterface initialQuestion={currentPrompt} />
+          <ChatInterface initialQuestion={currentPrompt} mbtiType={mbtiType} />
         </div>
       </div>
       <Toaster />
