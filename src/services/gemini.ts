@@ -1,3 +1,4 @@
+
 import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold, GenerativeModel } from '@google/generative-ai';
 import StorageService from './storage';
 
@@ -97,30 +98,23 @@ class GeminiService {
 
     try {
       // Convert chat messages to Gemini format
-      const history = messages.map(msg => {
-        if (msg.role === 'user') {
-          return {
-            role: 'user',
-            parts: [{ text: msg.content }],
-          };
-        } else {
-          return {
-            role: 'model',
-            parts: [{ text: msg.content }],
-          };
-        }
+      const formattedMessages = messages.map(msg => {
+        return {
+          role: msg.role === 'system' ? 'user' : msg.role,
+          parts: [{ text: msg.content }],
+        };
       });
 
-      // Start a chat session
-      const chat = this.model.startChat({
-        history: history.slice(0, -1) as any,
-      });
-
-      // Get the last message (current prompt)
-      const lastMessage = messages[messages.length - 1];
+      // Extract the user prompt (last message)
+      const userPrompt = messages[messages.length - 1].content;
       
-      // Generate response
-      const result = await chat.sendMessage(lastMessage.content);
+      // Add system instruction to the beginning if provided
+      if (systemInstruction) {
+        console.log("Using system instruction:", systemInstruction);
+      }
+
+      // Generate response using the content generation API instead of chat
+      const result = await this.model.generateContent(userPrompt);
       const response = result.response;
       return response.text();
     } catch (error) {

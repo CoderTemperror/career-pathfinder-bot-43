@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Send, Sparkles, RotateCcw, Loader2 } from 'lucide-react';
@@ -45,11 +46,7 @@ const ChatInterface = ({ className = "", initialQuestion, mbtiType }: ChatInterf
 
   const getGeminiResponse = async (userMessage: string): Promise<string> => {
     try {
-      const conversationHistory = messages.map(msg => ({
-        role: msg.role as 'user' | 'assistant' | 'system',
-        content: msg.content
-      }));
-      
+      // Create a system prompt with career guidance instructions
       let systemPrompt = `You are a helpful career advisor. Your goal is to help users explore career options based on their skills, interests, education, and preferences. 
         Provide thoughtful, personalized career guidance. Ask follow-up questions to better understand the user's situation. 
         Be concise but thorough, avoiding overly generic advice. Focus on providing actionable insights and specific career paths that might suit the user.
@@ -59,26 +56,15 @@ const ChatInterface = ({ className = "", initialQuestion, mbtiType }: ChatInterf
         systemPrompt += `\nThe user's MBTI type is ${mbtiType}. Consider this personality type when providing career advice and suggestions.`;
       }
       
-      const systemMessage = {
-        role: 'system' as const,
-        content: systemPrompt
-      };
+      // For Gemini, we'll send just the current user message, not the whole conversation history
+      // This avoids the "First content should be with role 'user'" error
       
-      const userMessageObj = {
-        role: 'user' as const,
-        content: userMessage
-      };
-      
-      const messagesToSend = [
-        systemMessage,
-        ...conversationHistory.slice(-10),
-        userMessageObj
-      ];
-      
-      const response = await GeminiService.generateChatCompletion(messagesToSend, {
-        temperature: 0.7,
-        max_tokens: 500
-      });
+      const response = await GeminiService.generateChatCompletion([
+        {
+          role: 'user',
+          content: systemPrompt + "\n\nUser query: " + userMessage
+        }
+      ]);
       
       return response;
     } catch (error) {
