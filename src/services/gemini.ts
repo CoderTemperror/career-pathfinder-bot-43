@@ -12,7 +12,7 @@ interface GeminiConfig {
 // Default configuration with the provided API key
 const defaultConfig: GeminiConfig = {
   apiKey: 'AIzaSyA83FqsfRZI2S4_WGXjQ_lpVMKXUaKmFuw',
-  model: 'gemini-2.0-flash',  // This is the correct model name
+  model: 'gemini-2.0-flash',  // Make sure to use the correct model name
   temperature: 0.4,
   maxOutputTokens: 2048,
 };
@@ -33,6 +33,9 @@ class GeminiService {
     if (!this.config.apiKey) {
       this.config.apiKey = defaultConfig.apiKey;
     }
+
+    // IMPORTANT: Ensure the model is ALWAYS gemini-2.0-flash, overriding any saved value
+    this.config.model = defaultConfig.model;
     
     this.initializeModel();
   }
@@ -42,7 +45,7 @@ class GeminiService {
 
     try {
       this.genAI = new GoogleGenerativeAI(this.config.apiKey);
-      console.log(`Initializing model: ${this.config.model}`); // Add logging
+      console.log(`Initializing model: ${this.config.model}`); 
       this.model = this.genAI.getGenerativeModel({
         model: this.config.model,
         generationConfig: {
@@ -80,6 +83,9 @@ class GeminiService {
   }
 
   public saveConfig(config: Partial<GeminiConfig>): void {
+    // IMPORTANT: Always ensure the model is gemini-2.0-flash
+    config.model = defaultConfig.model;
+    
     this.config = { ...this.config, ...config };
     StorageService.set(GEMINI_CONFIG_KEY, this.config);
     this.initializeModel();
@@ -98,8 +104,12 @@ class GeminiService {
     }
 
     try {
-      // Extract the user prompt (last message)
-      const userPrompt = messages[messages.length - 1].content;
+      // Extract the user prompt (last message with role 'user')
+      const userMessage = messages.find(m => m.role === 'user');
+      if (!userMessage) {
+        throw new Error('No user message found');
+      }
+      const userPrompt = userMessage.content;
       
       // Combine system instruction with user prompt if provided
       let prompt = userPrompt;
@@ -134,12 +144,21 @@ class GeminiService {
     messages: Array<{ role: string; content: string }>,
     options: { temperature?: number; max_tokens?: number } = {}
   ): Promise<string> {
-    // For gemini-2.0-flash, we need to simplify our approach and not use chat format
-    // Instead, we'll just extract the last message and use it with the system prompt
-    const lastUserMessage = messages.find(msg => msg.role === 'user') || messages[messages.length - 1];
-    const systemMessage = messages.find(msg => msg.role === 'system');
-    
-    return this.generateResponse([lastUserMessage], systemMessage?.content);
+    try {
+      // Extract the user message and system message
+      const userMessage = messages.find(msg => msg.role === 'user');
+      if (!userMessage) {
+        throw new Error('No user message found in the conversation');
+      }
+      
+      const systemMessage = messages.find(msg => msg.role === 'system');
+      
+      // Use the generateResponse method with extracted messages
+      return this.generateResponse([userMessage], systemMessage?.content);
+    } catch (error) {
+      console.error('Error in generateChatCompletion:', error);
+      throw error;
+    }
   }
 }
 

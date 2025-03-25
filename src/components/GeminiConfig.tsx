@@ -31,8 +31,8 @@ const GeminiConfig = () => {
         <Button variant="outline" className="ml-2 relative" size="sm">
           <Key className="h-4 w-4 mr-2" />
           Gemini API Status
-          <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-green-500">
-            <span className="sr-only">Gemini connected</span>
+          <span className={`absolute -top-1 -right-1 h-3 w-3 rounded-full ${isInitialized ? 'bg-green-500' : 'bg-red-500'}`}>
+            <span className="sr-only">Gemini {isInitialized ? 'connected' : 'disconnected'}</span>
           </span>
         </Button>
       </DialogTrigger>
@@ -50,8 +50,14 @@ const GeminiConfig = () => {
             <div className="flex-1">
               <p className="text-sm font-medium">Status:</p>
               <p className="text-sm text-muted-foreground flex items-center">
-                <Check className="h-3 w-3 text-green-500 mr-1" />
-                Connected
+                {isInitialized ? (
+                  <>
+                    <Check className="h-3 w-3 text-green-500 mr-1" />
+                    Connected
+                  </>
+                ) : (
+                  <span className="text-red-500">Disconnected</span>
+                )}
               </p>
             </div>
           </div>
