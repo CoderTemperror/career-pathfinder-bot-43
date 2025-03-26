@@ -301,14 +301,14 @@ const Assessment = () => {
         
         let answerText = '';
         if (Array.isArray(answer)) {
-          const options = question.options || [];
+          const options = (question as ChoiceQuestion).options || [];
           const selectedOptions = options
             .filter(opt => answer.includes(opt.value))
             .map(opt => opt.label);
           answerText = selectedOptions.join(', ');
         } else if (typeof answer === 'string') {
-          if (question.options) {
-            const option = question.options.find(opt => opt.value === answer);
+          if ((question as ChoiceQuestion).options) {
+            const option = (question as ChoiceQuestion).options.find(opt => opt.value === answer);
             answerText = option ? option.label : answer;
           } else {
             answerText = answer;
@@ -877,23 +877,4 @@ Choose career IDs from this list:
               
               {!isDataSaved && !loading && (
                 <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-amber-500 animate-pulse">
-                  <span className="sr-only">Unsaved changes</span>
-                </span>
-              )}
-            </Button>
-          </div>
-          
-          <div className="flex justify-center mt-4">
-            <div className="text-xs text-muted-foreground flex items-center">
-              <Save className="h-3 w-3 mr-1" />
-              Progress auto-saved. You can continue later.
-            </div>
-          </div>
-        </div>
-      </div>
-    </TransitionLayout>
-  );
-};
-
-export default Assessment;
-
+                  <span className
