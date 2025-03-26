@@ -1,234 +1,144 @@
 
-import { useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
-import { ArrowRight, MessageSquare, BookOpen, Compass, Award } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { useNavigate } from 'react-router-dom';
 import TransitionLayout from '@/components/TransitionLayout';
 import Navbar from '@/components/Navbar';
+import { Button } from '@/components/ui/button';
+import { Sparkles, BarChart3, MessageSquare, Brain, Lightbulb } from 'lucide-react';
 
 const Index = () => {
-  const featuresRef = useRef<HTMLDivElement>(null);
-  
-  const scrollToFeatures = () => {
-    featuresRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-  
-  const staggerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-      },
-    },
-  };
-  
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { 
-      opacity: 1, 
-      y: 0,
-      transition: {
-        duration: 0.6,
-        ease: [0.19, 1, 0.22, 1],
-      }
-    },
-  };
-  
-  // Feature cards data
-  const features = [
-    {
-      icon: <MessageSquare className="w-8 h-8 text-blue-600" />,
-      title: "AI Career Chat",
-      description: "Engage in meaningful conversations with our AI assistant to explore career possibilities based on your unique profile.",
-      path: "/chat",
-    },
-    {
-      icon: <BookOpen className="w-8 h-8 text-purple-600" />,
-      title: "Career Assessment",
-      description: "Discover careers aligned with your education, skills, personality, and preferences through our comprehensive assessment.",
-      path: "/assessment",
-    },
-    {
-      icon: <Compass className="w-8 h-8 text-green-600" />,
-      title: "Pathway Planning",
-      description: "Get detailed roadmaps showing the steps needed to achieve your career goals, with clear action items.",
-      path: "/pathway",
-    },
-    {
-      icon: <Award className="w-8 h-8 text-amber-600" />,
-      title: "Resource Library",
-      description: "Access curated resources to help you develop the skills and knowledge needed for your chosen career path.",
-      path: "/resources",
-    },
-  ];
-  
+  const navigate = useNavigate();
+
   return (
     <TransitionLayout>
       <Navbar />
-      
-      {/* Hero Section */}
-      <div className="min-h-screen flex flex-col justify-center px-6 py-20 bg-gradient-to-b from-background to-secondary/30">
-        <div className="max-w-4xl mx-auto text-center space-y-6">
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }} 
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: [0.19, 1, 0.22, 1] }}
-          >
-            <h1 className="text-4xl md:text-6xl font-display font-bold tracking-tight text-balance">
-              Discover Your Perfect Career Path
+      <div className="min-h-screen pt-24 px-6">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-16">
+            <h1 className="text-4xl md:text-6xl font-display font-bold tracking-tight mb-8">
+              <span className="inline-block">Find Your Perfect</span>{' '}
+              <span className="inline-block text-primary">Career Path</span>
             </h1>
-          </motion.div>
-          
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }} 
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1, ease: [0.19, 1, 0.22, 1] }}
-          >
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto text-balance">
-              AI-powered guidance to help you find fulfilling careers aligned with your skills, education, and personality.
+            <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto mb-8">
+              Discover careers that match your skills, interests, and personality
+              with our AI-powered career guidance tools.
             </p>
-          </motion.div>
-          
-          <motion.div 
-            className="pt-4 flex flex-col sm:flex-row gap-4 justify-center"
-            initial={{ opacity: 0, y: 20 }} 
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2, ease: [0.19, 1, 0.22, 1] }}
-          >
-            <Link to="/assessment">
-              <Button size="lg" className="rounded-xl px-6 py-6 hover-lift">
-                <span>Start Assessment</span>
-                <ArrowRight className="ml-2 w-5 h-5" />
+            <div className="flex flex-wrap gap-4 justify-center">
+              <Button
+                size="lg"
+                onClick={() => navigate('/assessment')}
+                className="text-md px-6"
+              >
+                <BarChart3 className="mr-2 h-5 w-5" />
+                Start Career Assessment
               </Button>
-            </Link>
-            
-            <Button 
-              variant="outline" 
-              size="lg" 
-              className="rounded-xl px-6 py-6 hover-lift"
-              onClick={scrollToFeatures}
-            >
-              Learn More
-            </Button>
-          </motion.div>
-        </div>
-        
-        {/* Animated arrow pointing down */}
-        <motion.div 
-          className="absolute bottom-8 left-1/2 transform -translate-x-1/2 cursor-pointer"
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ 
-            duration: 0.6, 
-            delay: 0.8,
-            ease: [0.19, 1, 0.22, 1],
-            repeat: Infinity,
-            repeatType: "reverse",
-          }}
-          onClick={scrollToFeatures}
-        >
-          <div className="p-2 rounded-full bg-secondary">
-            <svg 
-              xmlns="http://www.w3.org/2000/svg" 
-              width="24" 
-              height="24" 
-              viewBox="0 0 24 24" 
-              fill="none" 
-              stroke="currentColor" 
-              strokeWidth="2" 
-              strokeLinecap="round" 
-              strokeLinejoin="round"
-              className="text-muted-foreground"
-            >
-              <path d="M12 5v14" />
-              <path d="m19 12-7 7-7-7" />
-            </svg>
+              <Button
+                size="lg"
+                onClick={() => navigate('/mbti')}
+                variant="outline"
+                className="text-md px-6"
+              >
+                <Brain className="mr-2 h-5 w-5" />
+                MBTI Personality Test
+              </Button>
+              <Button
+                size="lg"
+                onClick={() => navigate('/chat')}
+                variant="secondary"
+                className="text-md px-6"
+              >
+                <MessageSquare className="mr-2 h-5 w-5" />
+                Chat with AI Assistant
+              </Button>
+            </div>
           </div>
-        </motion.div>
-      </div>
-      
-      {/* Features Section */}
-      <div ref={featuresRef} className="py-20 px-6">
-        <div className="max-w-6xl mx-auto">
-          <motion.div 
-            className="text-center mb-12"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, ease: [0.19, 1, 0.22, 1] }}
-          >
-            <h2 className="text-3xl md:text-4xl font-display font-bold tracking-tight mb-4">
-              How CareerPath Works
-            </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Our intelligent platform combines AI with career development expertise to guide you toward your perfect career.
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="bg-card rounded-xl p-6 shadow-sm border"
+            >
+              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                <Brain className="h-6 w-6 text-primary" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">MBTI Personality Test</h3>
+              <p className="text-muted-foreground">
+                Take our MBTI personality assessment to discover your type and find careers that align with your natural strengths.
+              </p>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="bg-card rounded-xl p-6 shadow-sm border"
+            >
+              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                <BarChart3 className="h-6 w-6 text-primary" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Skill Assessment</h3>
+              <p className="text-muted-foreground">
+                Answer questions about your skills, education, and preferences to
+                get personalized career recommendations.
+              </p>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="bg-card rounded-xl p-6 shadow-sm border"
+            >
+              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                <MessageSquare className="h-6 w-6 text-primary" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">AI Career Guidance</h3>
+              <p className="text-muted-foreground">
+                Chat with our AI assistant for personalized career advice,
+                education paths, and job market insights.
+              </p>
+            </motion.div>
+          </div>
+
+          <div className="bg-card rounded-xl p-8 border mb-16">
+            <div className="flex items-center mb-6">
+              <Sparkles className="h-5 w-5 text-primary mr-2" />
+              <h2 className="text-2xl font-semibold">AI-Powered Career Guidance</h2>
+            </div>
+            <p className="text-lg text-muted-foreground mb-4">
+              Our platform uses advanced AI to analyze your unique profile and
+              match you with careers that fit your skills, interests, and
+              personality. Get detailed insights on:
             </p>
-          </motion.div>
-          
-          <motion.div 
-            className="grid md:grid-cols-2 gap-6"
-            variants={staggerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-          >
-            {features.map((feature, index) => (
-              <motion.div key={index} variants={itemVariants}>
-                <Link to={feature.path} className="block h-full">
-                  <Card className="h-full transition-all duration-300 hover:shadow-md hover:-translate-y-1">
-                    <CardContent className="p-6">
-                      <div className="rounded-full w-16 h-16 flex items-center justify-center bg-secondary mb-4">
-                        {feature.icon}
-                      </div>
-                      <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
-                      <p className="text-muted-foreground mb-4">{feature.description}</p>
-                      <div className="flex items-center text-primary font-medium">
-                        <span>Explore</span>
-                        <ArrowRight className="ml-2 w-4 h-4" />
-                      </div>
-                    </CardContent>
-                  </Card>
-                </Link>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </div>
-      
-      {/* Call to Action */}
-      <div className="py-20 px-6 bg-primary/5">
-        <div className="max-w-4xl mx-auto text-center space-y-6">
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, ease: [0.19, 1, 0.22, 1] }}
-          >
-            <h2 className="text-3xl md:text-4xl font-display font-bold tracking-tight mb-4">
-              Start Your Career Journey Today
-            </h2>
-            <p className="text-xl text-muted-foreground mb-8">
-              Whether you're starting fresh or looking to pivot, we'll help you find your way forward.
-            </p>
-            <Link to="/chat">
-              <Button size="lg" className="rounded-xl px-6 py-6 hover-lift">
-                <MessageSquare className="mr-2 w-5 h-5" />
-                <span>Chat with AI Assistant</span>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+              <div className="p-4 bg-secondary rounded-lg">
+                <Lightbulb className="h-5 w-5 text-primary mb-2" />
+                <h3 className="font-medium">Career Matches</h3>
+              </div>
+              <div className="p-4 bg-secondary rounded-lg">
+                <Lightbulb className="h-5 w-5 text-primary mb-2" />
+                <h3 className="font-medium">Education Paths</h3>
+              </div>
+              <div className="p-4 bg-secondary rounded-lg">
+                <Lightbulb className="h-5 w-5 text-primary mb-2" />
+                <h3 className="font-medium">Skill Building</h3>
+              </div>
+              <div className="p-4 bg-secondary rounded-lg">
+                <Lightbulb className="h-5 w-5 text-primary mb-2" />
+                <h3 className="font-medium">Job Market Trends</h3>
+              </div>
+            </div>
+            <div className="flex justify-center">
+              <Button onClick={() => navigate('/mbti')} className="px-6">
+                <Brain className="mr-2 h-4 w-4" />
+                Take the MBTI Assessment
               </Button>
-            </Link>
-          </motion.div>
+            </div>
+          </div>
         </div>
       </div>
-      
-      {/* Footer */}
-      <footer className="py-12 px-6 bg-secondary/80">
-        <div className="max-w-6xl mx-auto text-center">
-          <p className="text-muted-foreground">© 2024 CareerPath. All rights reserved.</p>
-        </div>
-      </footer>
     </TransitionLayout>
   );
 };
