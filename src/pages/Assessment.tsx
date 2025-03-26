@@ -126,7 +126,7 @@ const Assessment = () => {
   
   const currentQuestion = !showingMbtiQuestions ? 
     questions[currentStep] : 
-    { id: `mbti-${mbtiQuestions[currentMbtiQuestionIndex].id}`, title: "Which statement describes you better?" };
+    { id: `mbti-${mbtiQuestions[currentMbtiQuestionIndex].id}`, title: "Which statement describes you better?", type: "radio" };
   
   useEffect(() => {
     const savedAnswers = StorageService.getAssessmentData();
@@ -580,11 +580,15 @@ Choose career IDs from this list:
   const renderQuestionInput = () => {
     const question = currentQuestion;
     
+    if (showingMbtiQuestions) {
+      return renderMbtiQuestionInput();
+    }
+    
     switch (question.type) {
       case 'text':
         return (
           <Input
-            placeholder={question.placeholder}
+            placeholder={question.placeholder || ''}
             value={answers[question.id] || ''}
             onChange={(e) => handleInputChange(question.id, e.target.value)}
             className="w-full"
@@ -594,7 +598,7 @@ Choose career IDs from this list:
       case 'textarea':
         return (
           <Textarea
-            placeholder={question.placeholder}
+            placeholder={question.placeholder || ''}
             value={answers[question.id] || ''}
             onChange={(e) => handleInputChange(question.id, e.target.value)}
             className="w-full min-h-[150px]"
@@ -608,7 +612,7 @@ Choose career IDs from this list:
             onValueChange={(value) => handleInputChange(question.id, value)}
             className="space-y-3"
           >
-            {question.options.map((option) => (
+            {question.options && question.options.map((option) => (
               <div key={option.value} className="flex items-center space-x-2">
                 <RadioGroupItem value={option.value} id={option.value} />
                 <Label htmlFor={option.value} className="cursor-pointer">
@@ -622,7 +626,7 @@ Choose career IDs from this list:
       case 'checkbox':
         return (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {question.options.map((option) => (
+            {question.options && question.options.map((option) => (
               <div key={option.value} className="flex items-center space-x-2">
                 <Checkbox
                   id={option.value}

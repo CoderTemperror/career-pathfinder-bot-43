@@ -14,7 +14,7 @@ import {
   GraduationCap, 
   TrendingUp, 
   Briefcase, 
-  Bank, 
+  BanknoteIcon, 
   Globe, 
   ScrollText, 
   School,
@@ -22,7 +22,8 @@ import {
   Target,
   DollarSign,
   Clock,
-  Lightbulb
+  Lightbulb,
+  ArrowRight as ArrowRightIcon
 } from 'lucide-react';
 
 const streams = [
@@ -355,7 +356,7 @@ const CareerExplorer = () => {
                     </div>
                   </div>
                   <div>
-                    <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                    <ArrowRightIcon className="h-4 w-4 text-muted-foreground" />
                   </div>
                 </Button>
               ))}
