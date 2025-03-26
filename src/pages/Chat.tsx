@@ -75,9 +75,18 @@ const Chat = () => {
                         if (textareaElement) {
                           // Focus the textarea and dispatch an input event to trigger changes
                           textareaElement.focus();
-                          textareaElement.dispatchEvent(new Event('input', { bubbles: true }));
+                          const event = new Event('input', { bubbles: true });
+                          textareaElement.dispatchEvent(event);
+                          
+                          // Also simulate an Enter key press to submit the form
+                          const enterEvent = new KeyboardEvent('keydown', {
+                            key: 'Enter',
+                            code: 'Enter',
+                            bubbles: true
+                          });
+                          textareaElement.dispatchEvent(enterEvent);
                         }
-                      }, 50);
+                      }, 100);
                     }}
                     className="text-left p-3 bg-secondary rounded-lg hover:bg-secondary/80 transition-colors"
                   >
