@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -877,4 +878,22 @@ Choose career IDs from this list:
               
               {!isDataSaved && !loading && (
                 <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-amber-500 animate-pulse">
-                  <span className
+                  <span className="sr-only">Unsaved changes</span>
+                </span>
+              )}
+            </Button>
+          </div>
+          
+          <div className="flex justify-center mt-4">
+            <div className="text-xs text-muted-foreground flex items-center">
+              <Save className="h-3 w-3 mr-1" />
+              Progress auto-saved. You can continue later.
+            </div>
+          </div>
+        </div>
+      </div>
+    </TransitionLayout>
+  );
+};
+
+export default Assessment;
