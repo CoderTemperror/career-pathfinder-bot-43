@@ -6,13 +6,23 @@ import SuggestedPrompts from '@/components/SuggestedPrompts';
 import { useSearchParams } from 'react-router-dom';
 import { Toaster } from '@/components/ui/toaster';
 import { Sparkles } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { getSuggestedPrompts } from '@/utils/mbtiCalculator';
 
 const Chat = () => {
   const [searchParams] = useSearchParams();
   const initialQuestion = searchParams.get('question') || undefined;
   const mbtiType = searchParams.get('mbti') || undefined;
   const [currentPrompt, setCurrentPrompt] = useState<string>(initialQuestion || '');
+  const [mbtiPrompts, setMbtiPrompts] = useState<string[]>([]);
+  
+  useEffect(() => {
+    // If MBTI type is provided, get customized prompts
+    if (mbtiType) {
+      const prompts = getSuggestedPrompts(mbtiType);
+      setMbtiPrompts(prompts);
+    }
+  }, [mbtiType]);
   
   const handleSelectPrompt = (prompt: string) => {
     setCurrentPrompt(prompt);
@@ -49,7 +59,24 @@ const Chat = () => {
             )}
           </div>
           
-          <SuggestedPrompts onSelectPrompt={handleSelectPrompt} />
+          {mbtiType && mbtiPrompts.length > 0 ? (
+            <div className="mb-6">
+              <h2 className="text-xl font-semibold mb-3">Personalized Suggestions for {mbtiType}</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {mbtiPrompts.map((prompt, index) => (
+                  <button
+                    key={index}
+                    onClick={() => handleSelectPrompt(prompt)}
+                    className="text-left p-3 bg-secondary rounded-lg hover:bg-secondary/80 transition-colors"
+                  >
+                    {prompt}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <SuggestedPrompts onSelectPrompt={handleSelectPrompt} />
+          )}
           
           <ChatInterface initialQuestion={currentPrompt} mbtiType={mbtiType} />
         </div>
