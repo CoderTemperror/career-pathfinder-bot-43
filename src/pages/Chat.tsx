@@ -66,7 +66,19 @@ const Chat = () => {
                 {mbtiPrompts.map((prompt, index) => (
                   <button
                     key={index}
-                    onClick={() => handleSelectPrompt(prompt)}
+                    onClick={() => {
+                      // First set the prompt
+                      handleSelectPrompt(prompt);
+                      // Then force a small delay to ensure the state is updated
+                      setTimeout(() => {
+                        const textareaElement = document.querySelector('textarea');
+                        if (textareaElement) {
+                          // Focus the textarea and dispatch an input event to trigger changes
+                          textareaElement.focus();
+                          textareaElement.dispatchEvent(new Event('input', { bubbles: true }));
+                        }
+                      }, 50);
+                    }}
                     className="text-left p-3 bg-secondary rounded-lg hover:bg-secondary/80 transition-colors"
                   >
                     {prompt}

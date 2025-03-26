@@ -24,7 +24,9 @@ const ChatInterface = ({ className = "", initialQuestion, mbtiType }: ChatInterf
     {
       id: '1',
       role: 'assistant',
-      content: "Hi there! I'm your Career Pathfinder assistant. I can help you discover suitable careers based on your background, skills, and interests. What would you like to explore today?",
+      content: mbtiType ? 
+        `Based on your assessment, your MBTI type is ${mbtiType}. This personality type has specific career strengths and preferences. How can I help you explore career paths that align with your ${mbtiType} personality type?` :
+        "Hi there! I'm your Career Pathfinder assistant. I can help you discover suitable careers based on your background, skills, and interests. What would you like to explore today?",
       timestamp: new Date(),
     }
   ]);
@@ -33,6 +35,7 @@ const ChatInterface = ({ className = "", initialQuestion, mbtiType }: ChatInterf
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [editedContent, setEditedContent] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const initialQuestionSent = useRef(false);
   
   useEffect(() => {
     if (messagesEndRef.current) {
@@ -41,10 +44,24 @@ const ChatInterface = ({ className = "", initialQuestion, mbtiType }: ChatInterf
   }, [messages]);
 
   useEffect(() => {
+    // Update input value if initialQuestion changes
     if (initialQuestion) {
-      handleSendMessage();
+      setInputValue(initialQuestion);
     }
-  }, []);
+  }, [initialQuestion]);
+
+  useEffect(() => {
+    // Send initial question only once when component mounts
+    if (initialQuestion && !initialQuestionSent.current) {
+      initialQuestionSent.current = true;
+      // Add a small delay to ensure the component is fully mounted
+      const timer = setTimeout(() => {
+        handleSendMessage();
+      }, 100);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [initialQuestion]);
 
   const getGeminiResponse = async (userMessage: string): Promise<string> => {
     try {
