@@ -15,10 +15,7 @@ import {
   CheckCircle,
   ClipboardCheck,
   GraduationCap,
-  TrendingUp,
-  Compass,
-  BookOpen,
-  Target
+  TrendingUp 
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -30,7 +27,6 @@ import TransitionLayout from '@/components/TransitionLayout';
 import Navbar from '@/components/Navbar';
 import PathwayStep from '@/components/PathwayStep';
 import CareerCard from '@/components/CareerCard';
-import CareerExplorer from '@/components/CareerExplorer';
 import { Career, CareerPathway, PathwayStep as PathwayStepType } from '@/types';
 import { careerOptions } from '@/data/careerOptions';
 import StorageService from '@/services/storage';
@@ -321,7 +317,6 @@ const Pathway = () => {
   const [selectedCareerDetails, setSelectedCareerDetails] = useState<any | null>(null);
   const [assessmentResults, setAssessmentResults] = useState<any | null>(null);
   const [openSection, setOpenSection] = useState<string | null>("education");
-  const [mbtiType, setMbtiType] = useState<string | null>(null);
   
   useEffect(() => {
     // Load any assessment results from storage
@@ -330,12 +325,6 @@ const Pathway = () => {
         const results = await StorageService.get('assessmentResults');
         if (results) {
           setAssessmentResults(results);
-        }
-        
-        // Check for MBTI results also
-        const mbtiResults = await StorageService.get('mbti_result');
-        if (mbtiResults && mbtiResults.type) {
-          setMbtiType(mbtiResults.type);
         }
       } catch (error) {
         console.error('Failed to load assessment results:', error);
@@ -375,26 +364,6 @@ const Pathway = () => {
     setOpenSection(openSection === section ? null : section);
   };
 
-  const getPersonalizedNote = () => {
-    if (!mbtiType) return null;
-    
-    return (
-      <div className="mb-6 p-4 border rounded-lg bg-primary/5">
-        <h3 className="flex items-center text-lg font-medium mb-2">
-          <Sparkles className="mr-2 h-5 w-5 text-primary" />
-          Personalized MBTI Insights for {mbtiType}
-        </h3>
-        <p className="text-sm text-muted-foreground">
-          Based on your {mbtiType} personality type, you may excel in careers that involve
-          {mbtiType.includes('E') ? ' collaboration and teamwork' : ' independent work and deep focus'}.
-          {mbtiType.includes('N') ? ' You enjoy exploring possibilities and innovations' : ' You appreciate practical, concrete tasks'}.
-          {mbtiType.includes('F') ? ' Your empathy makes you excellent at understanding people\'s needs' : ' Your logical approach helps in systematic problem-solving'}.
-          {mbtiType.includes('J') ? ' Your organizational skills help in structured environments' : ' Your adaptability thrives in flexible workplaces'}.
-        </p>
-      </div>
-    );
-  };
-
   return (
     <TransitionLayout>
       <Navbar />
@@ -407,27 +376,15 @@ const Pathway = () => {
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
               Discover the steps to reach your career goals and explore the most suited paths based on your skills and interests.
             </p>
-            
-            {mbtiType && (
-              <div className="flex justify-center mt-4">
-                <Badge className="px-3 py-1 text-sm">
-                  <GraduationCap className="mr-2 h-4 w-4" />
-                  MBTI Personality Type: {mbtiType}
-                </Badge>
-              </div>
-            )}
           </div>
 
           <Tabs defaultValue={selectedTab} onValueChange={setSelectedTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="matches">Career Matches</TabsTrigger>
               <TabsTrigger value="pathway" disabled={!selectedCareerId}>Career Pathway</TabsTrigger>
-              <TabsTrigger value="explorer">Career Explorer</TabsTrigger>
             </TabsList>
             
-            <TabsContent value="matches" className="mt-6 space-y-6">
-              {getPersonalizedNote()}
-              
+            <TabsContent value="matches" className="mt-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {mockCareers.map((career) => (
                   <CareerCard 
@@ -473,40 +430,6 @@ const Pathway = () => {
                           ))}
                         </div>
                       </div>
-                      
-                      {mbtiType && (
-                        <div className="p-5 border rounded-lg bg-primary/5 mb-8">
-                          <h3 className="text-lg font-semibold flex items-center mb-2">
-                            <Target className="h-5 w-5 mr-2 text-primary" />
-                            MBTI Compatibility
-                          </h3>
-                          <p className="text-sm mb-3">
-                            As an <span className="font-medium">{mbtiType}</span> personality type, here's how this career aligns with your natural strengths:
-                          </p>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div className="flex items-start gap-2">
-                              <CheckCircle className="h-4 w-4 text-green-500 mt-0.5" />
-                              <div>
-                                <h4 className="text-sm font-medium">Strengths Match</h4>
-                                <p className="text-xs text-muted-foreground">
-                                  {mbtiType.includes('I') ? 'Your thoughtful analysis and focus' : 'Your energetic and collaborative nature'}
-                                  {mbtiType.includes('N') ? ' and innovative thinking' : ' and practical approach'}
-                                </p>
-                              </div>
-                            </div>
-                            <div className="flex items-start gap-2">
-                              <AlertCircle className="h-4 w-4 text-amber-500 mt-0.5" />
-                              <div>
-                                <h4 className="text-sm font-medium">Growth Areas</h4>
-                                <p className="text-xs text-muted-foreground">
-                                  {mbtiType.includes('F') ? 'You may need to develop more objective decision-making' : 'You may need to consider people\'s feelings more'}
-                                  {mbtiType.includes('P') ? ' and improve organizational skills' : ' and be more flexible with changes'}
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      )}
                     </div>
                     
                     <div>
@@ -548,32 +471,14 @@ const Pathway = () => {
                               <AccordionItem value="salary">
                                 <AccordionTrigger>Salary Range</AccordionTrigger>
                                 <AccordionContent>
-                                  <div className="space-y-3">
-                                    <div>
-                                      <h4 className="text-sm font-medium mb-1">India</h4>
-                                      <div className="flex items-center justify-between">
-                                        <span className="text-sm">
-                                          ₹{(selectedCareerDetails.salary.min * 0.075).toFixed(2)} LPA
-                                        </span>
-                                        <Separator className="w-12" />
-                                        <span className="text-sm">
-                                          ₹{(selectedCareerDetails.salary.max * 0.075).toFixed(2)} LPA
-                                        </span>
-                                      </div>
-                                    </div>
-                                    
-                                    <div>
-                                      <h4 className="text-sm font-medium mb-1">United States</h4>
-                                      <div className="flex items-center justify-between">
-                                        <span className="text-sm">
-                                          {selectedCareerDetails.salary.currency}{selectedCareerDetails.salary.min.toLocaleString()}
-                                        </span>
-                                        <Separator className="w-12" />
-                                        <span className="text-sm">
-                                          {selectedCareerDetails.salary.currency}{selectedCareerDetails.salary.max.toLocaleString()}
-                                        </span>
-                                      </div>
-                                    </div>
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-sm">
+                                      {selectedCareerDetails.salary.currency}{selectedCareerDetails.salary.min.toLocaleString()}
+                                    </span>
+                                    <Separator className="w-12" />
+                                    <span className="text-sm">
+                                      {selectedCareerDetails.salary.currency}{selectedCareerDetails.salary.max.toLocaleString()}
+                                    </span>
                                   </div>
                                 </AccordionContent>
                               </AccordionItem>
@@ -609,87 +514,6 @@ const Pathway = () => {
                                   </div>
                                 </AccordionContent>
                               </AccordionItem>
-                              
-                              <AccordionItem value="colleges">
-                                <AccordionTrigger>Top Colleges</AccordionTrigger>
-                                <AccordionContent>
-                                  <div className="space-y-4">
-                                    <div>
-                                      <h4 className="text-sm font-medium mb-2">India</h4>
-                                      <ul className="text-sm space-y-1">
-                                        <li className="flex items-center gap-1">
-                                          <Building className="h-3 w-3" />
-                                          {selectedCareerDetails.id === 'software-engineer' ? 'IIT Bombay, Delhi, Madras' : 
-                                           selectedCareerDetails.id === 'ux-designer' ? 'NID Ahmedabad, IIT Bombay IDC' :
-                                           selectedCareerDetails.id === 'data-scientist' ? 'IISc Bangalore, IIT Delhi' :
-                                           'IIM Ahmedabad, Bangalore, Calcutta'}
-                                        </li>
-                                        <li className="flex items-center gap-1">
-                                          <Building className="h-3 w-3" />
-                                          {selectedCareerDetails.id === 'software-engineer' ? 'BITS Pilani, IIIT Hyderabad' : 
-                                           selectedCareerDetails.id === 'ux-designer' ? 'Srishti Institute, MIT Institute of Design' :
-                                           selectedCareerDetails.id === 'data-scientist' ? 'ISI Kolkata, CMI Chennai' :
-                                           'XLRI Jamshedpur, SPJIMR Mumbai'}
-                                        </li>
-                                        <li className="flex items-center gap-1">
-                                          <Building className="h-3 w-3" />
-                                          {selectedCareerDetails.id === 'software-engineer' ? 'NIT Trichy, Warangal, Surathkal' : 
-                                           selectedCareerDetails.id === 'ux-designer' ? 'Pearl Academy, Symbiosis Design' :
-                                           selectedCareerDetails.id === 'data-scientist' ? 'BITS Pilani, IIT Bombay' :
-                                           'FMS Delhi, MDI Gurgaon'}
-                                        </li>
-                                      </ul>
-                                    </div>
-                                    
-                                    <div>
-                                      <h4 className="text-sm font-medium mb-2">Global</h4>
-                                      <ul className="text-sm space-y-1">
-                                        <li className="flex items-center gap-1">
-                                          <Building className="h-3 w-3" />
-                                          {selectedCareerDetails.id === 'software-engineer' ? 'MIT, Stanford, Carnegie Mellon' : 
-                                           selectedCareerDetails.id === 'ux-designer' ? 'Rhode Island School of Design, Parsons' :
-                                           selectedCareerDetails.id === 'data-scientist' ? 'Stanford, MIT, Berkeley' :
-                                           'Harvard, Stanford, Wharton'}
-                                        </li>
-                                        <li className="flex items-center gap-1">
-                                          <Building className="h-3 w-3" />
-                                          {selectedCareerDetails.id === 'software-engineer' ? 'Berkeley, University of Washington' : 
-                                           selectedCareerDetails.id === 'ux-designer' ? 'Pratt Institute, RCA London' :
-                                           selectedCareerDetails.id === 'data-scientist' ? 'Harvard, Oxford, ETH Zurich' :
-                                           'London Business School, INSEAD, HEC Paris'}
-                                        </li>
-                                      </ul>
-                                    </div>
-                                  </div>
-                                </AccordionContent>
-                              </AccordionItem>
-                              
-                              <AccordionItem value="exams">
-                                <AccordionTrigger>Required Exams</AccordionTrigger>
-                                <AccordionContent>
-                                  <div className="space-y-2">
-                                    <div>
-                                      <h4 className="text-sm font-medium mb-1">India</h4>
-                                      <p className="text-sm">
-                                        {selectedCareerDetails.id === 'software-engineer' ? 'JEE Main/Advanced, GATE, BITSAT' : 
-                                         selectedCareerDetails.id === 'ux-designer' ? 'UCEED, NID DAT, CEED' :
-                                         selectedCareerDetails.id === 'data-scientist' ? 'GATE, JAM, entrance exams for specific institutions' :
-                                         'CAT, XAT, GMAT, MAT'}
-                                      </p>
-                                    </div>
-                                    
-                                    <div>
-                                      <h4 className="text-sm font-medium mb-1">International</h4>
-                                      <p className="text-sm">
-                                        {selectedCareerDetails.id === 'software-engineer' ? 'GRE, university-specific entrance exams' : 
-                                         selectedCareerDetails.id === 'ux-designer' ? 'Portfolio assessments, GRE for some programs' :
-                                         selectedCareerDetails.id === 'data-scientist' ? 'GRE, GMAT for some programs' :
-                                         'GMAT, GRE for some programs'}
-                                      </p>
-                                    </div>
-                                  </div>
-                                </AccordionContent>
-                              </AccordionItem>
                             </Accordion>
                           </CardContent>
                         </Card>
@@ -708,10 +532,6 @@ const Pathway = () => {
                   </Button>
                 </div>
               )}
-            </TabsContent>
-            
-            <TabsContent value="explorer" className="mt-6">
-              <CareerExplorer />
             </TabsContent>
           </Tabs>
         </div>
