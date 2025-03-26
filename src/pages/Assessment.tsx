@@ -14,11 +14,10 @@ import { useToast } from '@/components/ui/use-toast';
 import { toast as sonnerToast } from 'sonner';
 import TransitionLayout from '@/components/TransitionLayout';
 import Navbar from '@/components/Navbar';
-import OpenAIConfig from '@/components/OpenAIConfig';
-import OpenAIService from '@/services/openai';
+import GeminiService from '@/services/gemini';
 import StorageService from '@/services/storage';
 import { Sparkles } from 'lucide-react';
-import GeminiService from '@/services/gemini';
+import { mbtiQuestions, calculateMBTIType, personalityDescriptions } from '@/utils/mbtiCalculator';
 
 const questions = [
   {
@@ -113,16 +112,26 @@ const Assessment = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(false);
-  const [openAIAvailable, setOpenAIAvailable] = useState(false);
   const [isDataSaved, setIsDataSaved] = useState(false);
+  const [mbtiAnswers, setMbtiAnswers] = useState<{[key: number]: 'A' | 'B'}>({});
+  const [showingMbtiQuestions, setShowingMbtiQuestions] = useState(false);
+  const [currentMbtiQuestionIndex, setCurrentMbtiQuestionIndex] = useState(0);
   const navigate = useNavigate();
   const { toast } = useToast();
   
-  const currentQuestion = questions[currentStep];
-  const progress = ((currentStep + 1) / questions.length) * 100;
+  const mbtiProgress = showingMbtiQuestions ? 
+    ((currentMbtiQuestionIndex + 1) / mbtiQuestions.length) * 100 : 0;
+  const regularProgress = !showingMbtiQuestions ? 
+    ((currentStep + 1) / questions.length) * 100 : 0;
+  
+  const currentQuestion = !showingMbtiQuestions ? 
+    questions[currentStep] : 
+    { id: `mbti-${mbtiQuestions[currentMbtiQuestionIndex].id}`, title: "Which statement describes you better?" };
   
   useEffect(() => {
     const savedAnswers = StorageService.getAssessmentData();
+    const savedMbtiAnswers = StorageService.get('mbti_answers');
+    
     if (savedAnswers) {
       setAnswers(savedAnswers);
       setIsDataSaved(true);
@@ -132,14 +141,9 @@ const Assessment = () => {
       });
     }
     
-    setOpenAIAvailable(OpenAIService.isInitialized());
-    
-    const checkOpenAI = () => {
-      setOpenAIAvailable(OpenAIService.isInitialized());
-    };
-    
-    window.addEventListener('storage', checkOpenAI);
-    return () => window.removeEventListener('storage', checkOpenAI);
+    if (savedMbtiAnswers) {
+      setMbtiAnswers(savedMbtiAnswers);
+    }
   }, []);
   
   useEffect(() => {
@@ -149,38 +153,113 @@ const Assessment = () => {
     }
   }, [answers]);
   
-  const handleNext = () => {
-    const currentQuestionId = currentQuestion.id;
-    
-    if (!answers[currentQuestionId] || 
-       (Array.isArray(answers[currentQuestionId]) && answers[currentQuestionId].length === 0)) {
-      toast({
-        title: "Input Required",
-        description: "Please answer the current question before proceeding.",
-        variant: "destructive",
-      });
-      return;
+  useEffect(() => {
+    if (Object.keys(mbtiAnswers).length > 0) {
+      StorageService.set('mbti_answers', mbtiAnswers);
     }
-    
-    if (currentStep < questions.length - 1) {
-      setCurrentStep(currentStep + 1);
+  }, [mbtiAnswers]);
+  
+  const handleNext = () => {
+    if (showingMbtiQuestions) {
+      if (!mbtiAnswers[mbtiQuestions[currentMbtiQuestionIndex].id]) {
+        toast({
+          title: "Input Required",
+          description: "Please answer the current question before proceeding.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      if (currentMbtiQuestionIndex < mbtiQuestions.length - 1) {
+        setCurrentMbtiQuestionIndex(currentMbtiQuestionIndex + 1);
+      } else {
+        processMbtiResults();
+        setShowingMbtiQuestions(false);
+        
+        if (currentStep >= questions.length - 1) {
+          handleComplete();
+        } else {
+          setCurrentStep(currentStep + 1);
+        }
+      }
     } else {
-      handleComplete();
+      const currentQuestionId = currentQuestion.id;
+      
+      if (!answers[currentQuestionId] || 
+         (Array.isArray(answers[currentQuestionId]) && answers[currentQuestionId].length === 0)) {
+        toast({
+          title: "Input Required",
+          description: "Please answer the current question before proceeding.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      if (currentQuestion.id === 'personality') {
+        setShowingMbtiQuestions(true);
+        return;
+      }
+      
+      if (currentStep < questions.length - 1) {
+        setCurrentStep(currentStep + 1);
+      } else {
+        handleComplete();
+      }
     }
   };
   
   const handleBack = () => {
-    if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
+    if (showingMbtiQuestions) {
+      if (currentMbtiQuestionIndex > 0) {
+        setCurrentMbtiQuestionIndex(currentMbtiQuestionIndex - 1);
+      } else {
+        setShowingMbtiQuestions(false);
+      }
+    } else {
+      if (currentStep > 0) {
+        setCurrentStep(currentStep - 1);
+      }
     }
   };
   
   const jumpToQuestion = (index: number) => {
-    setCurrentStep(index);
+    if (showingMbtiQuestions) {
+      setCurrentMbtiQuestionIndex(index);
+    } else {
+      setCurrentStep(index);
+    }
+  };
+  
+  const processMbtiResults = () => {
+    const formattedAnswers = Object.entries(mbtiAnswers).map(([questionId, answer]) => ({
+      questionId: parseInt(questionId),
+      answer
+    }));
+    
+    const mbtiType = calculateMBTIType(formattedAnswers);
+    
+    const personalityInfo = personalityDescriptions[mbtiType] || {
+      description: "Your personality type combines several traits.",
+      careers: []
+    };
+    
+    StorageService.set('mbti_result', {
+      type: mbtiType,
+      description: personalityInfo.description,
+      careers: personalityInfo.careers,
+      timestamp: new Date().toISOString()
+    });
+    
+    sonnerToast.success(`Your personality type is ${mbtiType}!`, {
+      description: personalityInfo.description,
+    });
   };
   
   const analyzeResultsWithGemini = async () => {
     try {
+      const mbtiResult = StorageService.get('mbti_result');
+      const mbtiType = mbtiResult ? mbtiResult.type : null;
+      
       const userProfile = Object.entries(answers).map(([questionId, answer]) => {
         const question = questions.find(q => q.id === questionId);
         if (!question) return '';
@@ -211,7 +290,8 @@ For each match, provide a match score percentage (0-100).
 
 USER PROFILE:
 ${userProfile}
-
+${mbtiType ? `MBTI Personality Type: ${mbtiType}` : ''}
+      
 Respond in the following JSON format:
 {
   "topMatches": [
@@ -438,12 +518,15 @@ Choose career IDs from this list:
         results = analyzeResultsLocally();
       }
       
-      sessionStorage.setItem('assessmentResults', JSON.stringify({
+      const mbtiResult = StorageService.get('mbti_result');
+      
+      StorageService.set('assessmentResults', {
         topMatches: results,
         answers,
+        mbtiType: mbtiResult ? mbtiResult.type : null,
         timestamp: new Date().toISOString(),
         aiPowered: true
-      }));
+      });
       
       sonnerToast.success("Assessment completed successfully!", {
         description: "Navigating to your personalized career pathway...",
@@ -468,8 +551,12 @@ Choose career IDs from this list:
   const handleResetAssessment = () => {
     if (confirm("Are you sure you want to reset all your answers? This cannot be undone.")) {
       StorageService.clearAssessmentData();
+      StorageService.set('mbti_answers', {});
       setAnswers({});
+      setMbtiAnswers({});
       setCurrentStep(0);
+      setCurrentMbtiQuestionIndex(0);
+      setShowingMbtiQuestions(false);
       setIsDataSaved(false);
       
       sonnerToast.info("Assessment reset", {
@@ -481,6 +568,13 @@ Choose career IDs from this list:
   const handleInputChange = (questionId: string, value: string | string[]) => {
     setAnswers({ ...answers, [questionId]: value });
     setIsDataSaved(false);
+  };
+  
+  const handleMbtiAnswer = (answer: 'A' | 'B') => {
+    setMbtiAnswers({ 
+      ...mbtiAnswers, 
+      [mbtiQuestions[currentMbtiQuestionIndex].id]: answer 
+    });
   };
   
   const renderQuestionInput = () => {
@@ -554,6 +648,32 @@ Choose career IDs from this list:
     }
   };
   
+  const renderMbtiQuestionInput = () => {
+    const question = mbtiQuestions[currentMbtiQuestionIndex];
+    
+    return (
+      <RadioGroup
+        value={mbtiAnswers[question.id]}
+        onValueChange={(value: 'A' | 'B') => handleMbtiAnswer(value)}
+        className="space-y-4"
+      >
+        <div className="flex items-start space-x-2 p-4 border rounded-lg hover:bg-secondary/30 transition-colors cursor-pointer">
+          <RadioGroupItem value="A" id={`option-a-${question.id}`} className="mt-1" />
+          <Label htmlFor={`option-a-${question.id}`} className="cursor-pointer flex-1">
+            {question.optionA}
+          </Label>
+        </div>
+        
+        <div className="flex items-start space-x-2 p-4 border rounded-lg hover:bg-secondary/30 transition-colors cursor-pointer">
+          <RadioGroupItem value="B" id={`option-b-${question.id}`} className="mt-1" />
+          <Label htmlFor={`option-b-${question.id}`} className="cursor-pointer flex-1">
+            {question.optionB}
+          </Label>
+        </div>
+      </RadioGroup>
+    );
+  };
+  
   const fadeVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: { 
@@ -596,40 +716,74 @@ Choose career IDs from this list:
           
           <div className="mb-4">
             <div className="flex justify-between text-sm mb-2">
-              <span>Question {currentStep + 1} of {questions.length}</span>
-              <span>{Math.round(progress)}% Complete</span>
+              {showingMbtiQuestions ? (
+                <>
+                  <span>Personality Question {currentMbtiQuestionIndex + 1} of {mbtiQuestions.length}</span>
+                  <span>{Math.round(mbtiProgress)}% Complete</span>
+                </>
+              ) : (
+                <>
+                  <span>Question {currentStep + 1} of {questions.length}</span>
+                  <span>{Math.round(regularProgress)}% Complete</span>
+                </>
+              )}
             </div>
-            <Progress value={progress} className="h-2" />
+            <Progress value={showingMbtiQuestions ? mbtiProgress : regularProgress} className="h-2" />
           </div>
           
           <div className="mb-4 overflow-x-auto">
-            <div className="flex space-x-2 min-w-max">
-              {questions.map((q, index) => (
-                <Button
-                  key={q.id}
-                  variant={currentStep === index ? "default" : answers[q.id] ? "outline" : "ghost"}
-                  size="sm"
-                  onClick={() => jumpToQuestion(index)}
-                  className={`text-xs px-3 ${answers[q.id] ? "border-green-500" : ""} ${currentStep === index ? "pointer-events-none" : ""}`}
-                >
-                  {index + 1}. {q.id.charAt(0).toUpperCase() + q.id.slice(1).replace('_', ' ')}
-                </Button>
-              ))}
+            <div className="flex space-x-2 min-w-max py-2">
+              {!showingMbtiQuestions ? (
+                questions.map((q, index) => (
+                  <Button
+                    key={q.id}
+                    variant={currentStep === index ? "default" : answers[q.id] ? "outline" : "ghost"}
+                    size="sm"
+                    onClick={() => jumpToQuestion(index)}
+                    className={`text-xs px-3 ${answers[q.id] ? "border-green-500" : ""} ${currentStep === index ? "pointer-events-none" : ""}`}
+                  >
+                    {index + 1}. {q.id.charAt(0).toUpperCase() + q.id.slice(1).replace('_', ' ')}
+                  </Button>
+                ))
+              ) : (
+                mbtiQuestions.map((q, index) => (
+                  <Button
+                    key={q.id}
+                    variant={currentMbtiQuestionIndex === index ? "default" : mbtiAnswers[q.id] ? "outline" : "ghost"}
+                    size="sm"
+                    onClick={() => jumpToQuestion(index)}
+                    className={`text-xs px-3 ${mbtiAnswers[q.id] ? "border-green-500" : ""} ${currentMbtiQuestionIndex === index ? "pointer-events-none" : ""}`}
+                  >
+                    {index + 1}
+                  </Button>
+                ))
+              )}
             </div>
           </div>
           
           <Card className="mb-8">
             <CardContent className="p-6 md:p-8">
               <motion.div
-                key={currentQuestion.id}
+                key={showingMbtiQuestions ? `mbti-${currentMbtiQuestionIndex}` : currentQuestion.id}
                 initial="hidden"
                 animate="visible"
                 exit="exit"
                 variants={fadeVariants}
                 className="space-y-6"
               >
-                <h2 className="text-xl font-semibold mb-4">{currentQuestion.title}</h2>
-                {renderQuestionInput()}
+                {showingMbtiQuestions ? (
+                  <>
+                    <h2 className="text-xl font-semibold mb-4">
+                      {currentMbtiQuestionIndex + 1}. Which of the following statements describe you more?
+                    </h2>
+                    {renderMbtiQuestionInput()}
+                  </>
+                ) : (
+                  <>
+                    <h2 className="text-xl font-semibold mb-4">{currentQuestion.title}</h2>
+                    {renderQuestionInput()}
+                  </>
+                )}
               </motion.div>
             </CardContent>
           </Card>
@@ -639,7 +793,7 @@ Choose career IDs from this list:
               <Button
                 variant="outline"
                 onClick={handleBack}
-                disabled={currentStep === 0 || loading}
+                disabled={currentStep === 0 && !showingMbtiQuestions || loading}
               >
                 <ArrowLeft className="mr-2 w-4 h-4" />
                 Back
@@ -648,7 +802,7 @@ Choose career IDs from this list:
               <Button 
                 variant="outline" 
                 onClick={handleResetAssessment} 
-                disabled={loading || Object.keys(answers).length === 0}
+                disabled={loading || (Object.keys(answers).length === 0 && Object.keys(mbtiAnswers).length === 0)}
                 className="text-destructive border-destructive hover:bg-destructive/10"
               >
                 Reset
@@ -663,9 +817,14 @@ Choose career IDs from this list:
               {loading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  {openAIAvailable ? "Analyzing with AI..." : "Processing..."}
+                  Processing...
                 </>
-              ) : currentStep === questions.length - 1 ? (
+              ) : showingMbtiQuestions && currentMbtiQuestionIndex === mbtiQuestions.length - 1 ? (
+                <>
+                  <CheckCircle className="mr-2 h-4 w-4" />
+                  Finish Personality Test
+                </>
+              ) : !showingMbtiQuestions && currentStep === questions.length - 1 ? (
                 <>
                   <CheckCircle className="mr-2 h-4 w-4" />
                   Complete
@@ -683,6 +842,13 @@ Choose career IDs from this list:
                 </span>
               )}
             </Button>
+          </div>
+          
+          <div className="flex justify-center mt-4">
+            <div className="text-xs text-muted-foreground flex items-center">
+              <Save className="h-3 w-3 mr-1" />
+              Progress auto-saved. You can continue later.
+            </div>
           </div>
         </div>
       </div>

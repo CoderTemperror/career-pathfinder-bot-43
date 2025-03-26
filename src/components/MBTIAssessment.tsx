@@ -1,8 +1,8 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowRight, ArrowLeft, CheckCircle, Loader2 } from 'lucide-react';
+import { ArrowRight, ArrowLeft, CheckCircle, Loader2, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
 import { mbtiQuestions, calculateMBTIType, personalityDescriptions } from '@/utils/mbtiCalculator';
+import StorageService from '@/services/storage';
 
 const MBTIAssessment = () => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -20,12 +21,33 @@ const MBTIAssessment = () => {
   const currentQuestion = mbtiQuestions[currentQuestionIndex];
   const progress = ((currentQuestionIndex + 1) / mbtiQuestions.length) * 100;
   
+  // Load saved answers from storage on mount
+  useEffect(() => {
+    const savedMBTIAnswers = StorageService.get('mbti_answers');
+    if (savedMBTIAnswers) {
+      setAnswers(savedMBTIAnswers);
+      toast.info("Previous answers loaded", {
+        description: "You can continue from where you left off."
+      });
+    }
+  }, []);
+  
+  // Save answers when they change
+  useEffect(() => {
+    if (Object.keys(answers).length > 0) {
+      StorageService.set('mbti_answers', answers);
+    }
+  }, [answers]);
+  
   const handleAnswer = (answer: 'A' | 'B') => {
     setAnswers({ ...answers, [currentQuestion.id]: answer });
     
-    // Automatically move to the next question after answering
-    if (currentQuestionIndex < mbtiQuestions.length - 1) {
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
+    // Only auto-advance if this is a new answer (not changing an existing one)
+    if (!answers[currentQuestion.id]) {
+      // Automatically move to the next question after answering
+      if (currentQuestionIndex < mbtiQuestions.length - 1) {
+        setCurrentQuestionIndex(currentQuestionIndex + 1);
+      }
     }
   };
   
@@ -33,6 +55,10 @@ const MBTIAssessment = () => {
     if (currentQuestionIndex > 0) {
       setCurrentQuestionIndex(currentQuestionIndex - 1);
     }
+  };
+  
+  const jumpToQuestion = (index: number) => {
+    setCurrentQuestionIndex(index);
   };
   
   const handleComplete = () => {
@@ -58,6 +84,14 @@ const MBTIAssessment = () => {
       careers: []
     };
     
+    // Save MBTI results to storage for later use
+    StorageService.set('mbti_result', {
+      type: mbtiType,
+      description: personalityInfo.description,
+      careers: personalityInfo.careers,
+      timestamp: new Date().toISOString()
+    });
+    
     toast.success(`Your personality type is ${mbtiType}!`, {
       description: personalityInfo.description,
     });
@@ -68,6 +102,17 @@ const MBTIAssessment = () => {
       navigate(`/chat?mbti=${mbtiType}`);
       setIsSubmitting(false);
     }, 2000);
+  };
+  
+  const resetAssessment = () => {
+    if (confirm("Are you sure you want to reset all your answers?")) {
+      setAnswers({});
+      setCurrentQuestionIndex(0);
+      StorageService.set('mbti_answers', {});
+      toast.info("Assessment reset", {
+        description: "All answers have been cleared."
+      });
+    }
   };
   
   const fadeVariants = {
@@ -98,6 +143,23 @@ const MBTIAssessment = () => {
           <span>{Math.round(progress)}% Complete</span>
         </div>
         <Progress value={progress} className="h-2" />
+      </div>
+      
+      {/* Question Navigation */}
+      <div className="mb-4 overflow-x-auto">
+        <div className="flex space-x-2 min-w-max py-2">
+          {mbtiQuestions.map((q, index) => (
+            <Button
+              key={q.id}
+              variant={currentQuestionIndex === index ? "default" : answers[q.id] ? "outline" : "ghost"}
+              size="sm"
+              onClick={() => jumpToQuestion(index)}
+              className={`text-xs px-3 ${answers[q.id] ? "border-green-500" : ""} ${currentQuestionIndex === index ? "pointer-events-none" : ""}`}
+            >
+              {index + 1}
+            </Button>
+          ))}
+        </div>
       </div>
       
       <Card className="mb-8">
@@ -138,14 +200,25 @@ const MBTIAssessment = () => {
       </Card>
       
       <div className="flex justify-between">
-        <Button
-          variant="outline"
-          onClick={handleBack}
-          disabled={currentQuestionIndex === 0 || isSubmitting}
-        >
-          <ArrowLeft className="mr-2 w-4 h-4" />
-          Back
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={handleBack}
+            disabled={currentQuestionIndex === 0 || isSubmitting}
+          >
+            <ArrowLeft className="mr-2 w-4 h-4" />
+            Back
+          </Button>
+          
+          <Button 
+            variant="outline" 
+            onClick={resetAssessment} 
+            disabled={isSubmitting || Object.keys(answers).length === 0}
+            className="text-destructive border-destructive hover:bg-destructive/10"
+          >
+            Reset
+          </Button>
+        </div>
         
         {currentQuestionIndex === mbtiQuestions.length - 1 ? (
           <Button 
@@ -173,6 +246,14 @@ const MBTIAssessment = () => {
             <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
         )}
+      </div>
+      
+      {/* Progress Saving Indicator */}
+      <div className="flex justify-center mt-4">
+        <div className="text-xs text-muted-foreground flex items-center">
+          <Save className="h-3 w-3 mr-1" />
+          Progress auto-saved. You can continue later.
+        </div>
       </div>
     </div>
   );
