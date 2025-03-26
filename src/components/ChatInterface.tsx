@@ -1,13 +1,14 @@
+
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Sparkles, RotateCcw, Loader2 } from 'lucide-react';
+import { Send, Sparkles, RotateCcw, Loader2, PencilLine, X, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar } from '@/components/ui/avatar';
 import { ChatMessage } from '@/types';
 import { chatMessageAnimation } from '@/utils/animations';
 import { v4 as uuidv4 } from 'uuid';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 import GeminiService from '@/services/gemini';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -23,13 +24,18 @@ const ChatInterface = ({ className = "", initialQuestion, mbtiType }: ChatInterf
     {
       id: '1',
       role: 'assistant',
-      content: "Hi there! I'm your Career Pathfinder assistant. I can help you discover suitable careers based on your background, skills, and interests. What would you like to explore today?",
+      content: mbtiType ? 
+        `Based on your assessment, your MBTI type is ${mbtiType}. This personality type has specific career strengths and preferences. How can I help you explore career paths that align with your ${mbtiType} personality type?` :
+        "Hi there! I'm your Career Pathfinder assistant. I can help you discover suitable careers based on your background, skills, and interests. What would you like to explore today?",
       timestamp: new Date(),
     }
   ]);
   const [inputValue, setInputValue] = useState(initialQuestion || "");
   const [isLoading, setIsLoading] = useState(false);
+  const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
+  const [editedContent, setEditedContent] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const initialQuestionSent = useRef(false);
   
   useEffect(() => {
     if (messagesEndRef.current) {
@@ -38,10 +44,24 @@ const ChatInterface = ({ className = "", initialQuestion, mbtiType }: ChatInterf
   }, [messages]);
 
   useEffect(() => {
+    // Update input value if initialQuestion changes
     if (initialQuestion) {
-      handleSendMessage();
+      setInputValue(initialQuestion);
     }
-  }, []);
+  }, [initialQuestion]);
+
+  useEffect(() => {
+    // Send initial question only once when component mounts
+    if (initialQuestion && !initialQuestionSent.current) {
+      initialQuestionSent.current = true;
+      // Add a small delay to ensure the component is fully mounted
+      const timer = setTimeout(() => {
+        handleSendMessage();
+      }, 100);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [initialQuestion]);
 
   const getGeminiResponse = async (userMessage: string): Promise<string> => {
     try {
@@ -49,7 +69,20 @@ const ChatInterface = ({ className = "", initialQuestion, mbtiType }: ChatInterf
       const systemPrompt = `You are a helpful career advisor. Your goal is to help users explore career options based on their skills, interests, education, and preferences. 
         Provide thoughtful, personalized career guidance. Ask follow-up questions to better understand the user's situation. 
         Be concise but thorough, avoiding overly generic advice. Focus on providing actionable insights and specific career paths that might suit the user.
-        Only answer questions related to careers, education, and professional development. If asked about unrelated topics, politely explain that you can only assist with career guidance.
+        
+        Only answer questions related to careers, education, colleges, exams, and professional development. 
+        If asked about unrelated topics, politely explain that you can only assist with career guidance and education-related questions.
+        
+        When providing career recommendations, include:
+        1. Educational paths and qualifications
+        2. Top colleges in India and worldwide
+        3. Required entrance exams or qualifications
+        4. Skills needed for success
+        5. Job profiles and opportunities
+        6. Future scope and growth potential
+        7. Salary ranges in different countries
+        8. Potential challenges and advantages
+        
         ${mbtiType ? `\nThe user's MBTI type is ${mbtiType}. Consider this personality type when providing career advice and suggestions.` : ''}`;
       
       // Send the system prompt as a separate message for the Gemini API
@@ -102,11 +135,7 @@ const ChatInterface = ({ className = "", initialQuestion, mbtiType }: ChatInterf
     } catch (error) {
       console.error("Error getting AI response:", error);
       
-      toast({
-        title: "Error",
-        description: "Failed to get a response. Please try again.",
-        variant: "destructive",
-      });
+      toast.error("Failed to get a response. Please try again.");
       
       const errorMessage: ChatMessage = {
         id: uuidv4(),
@@ -131,10 +160,41 @@ const ChatInterface = ({ className = "", initialQuestion, mbtiType }: ChatInterf
       }
     ]);
     
-    toast({
-      title: "Conversation Reset",
-      description: "Started a new conversation",
-    });
+    toast.success("Started a new conversation");
+  };
+  
+  const startEditing = (message: ChatMessage) => {
+    if (message.role === 'user') {
+      setEditingMessageId(message.id);
+      setEditedContent(message.content);
+    }
+  };
+  
+  const cancelEditing = () => {
+    setEditingMessageId(null);
+    setEditedContent("");
+  };
+  
+  const saveEdit = (messageId: string) => {
+    if (editedContent.trim() === "") return;
+    
+    setMessages(prev => 
+      prev.map(msg => 
+        msg.id === messageId 
+          ? { ...msg, content: editedContent }
+          : msg
+      )
+    );
+    
+    setEditingMessageId(null);
+    setEditedContent("");
+  };
+  
+  const resendMessage = (message: ChatMessage) => {
+    if (isLoading) return;
+    
+    setInputValue(message.content);
+    // Don't immediately send to allow user to edit if needed
   };
 
   return (
@@ -182,6 +242,7 @@ const ChatInterface = ({ className = "", initialQuestion, mbtiType }: ChatInterf
                   U
                 </Avatar>
               )}
+              
               <div
                 className={`p-4 rounded-xl max-w-[80%] ${
                   message.role === 'assistant' 
@@ -189,70 +250,119 @@ const ChatInterface = ({ className = "", initialQuestion, mbtiType }: ChatInterf
                     : 'bg-primary text-primary-foreground'
                 }`}
               >
-                {message.role === 'assistant' ? (
-                  <ReactMarkdown
-                    remarkPlugins={[remarkGfm]}
-                    components={{
-                      p: ({ node, ...props }) => (
-                        <p className="text-sm whitespace-pre-wrap" {...props} />
-                      ),
-                      a: ({ node, ...props }) => (
-                        <a className="text-blue-500 hover:underline" {...props} />
-                      ),
-                      ul: ({ node, ...props }) => (
-                        <ul className="list-disc pl-5 my-2" {...props} />
-                      ),
-                      ol: ({ node, ...props }) => (
-                        <ol className="list-decimal pl-5 my-2" {...props} />
-                      ),
-                      li: ({ node, ...props }) => (
-                        <li className="my-1" {...props} />
-                      ),
-                      h1: ({ node, ...props }) => (
-                        <h1 className="text-lg font-bold my-2" {...props} />
-                      ),
-                      h2: ({ node, ...props }) => (
-                        <h2 className="text-md font-bold my-2" {...props} />
-                      ),
-                      h3: ({ node, ...props }) => (
-                        <h3 className="text-sm font-bold my-2" {...props} />
-                      ),
-                      code: ({ node, className, children, ...props }: any) => {
-                        const match = /language-(\w+)/.exec(className || '');
-                        const isInline = !className;
-                        return isInline ? (
-                          <code className="bg-black/10 px-1 py-0.5 rounded" {...props}>
-                            {children}
-                          </code>
-                        ) : (
-                          <code className="block bg-black/10 p-2 my-2 rounded overflow-x-auto" {...props}>
-                            {children}
-                          </code>
-                        );
-                      },
-                      pre: ({ node, ...props }) => (
-                        <pre className="bg-black/10 p-2 my-2 rounded overflow-x-auto" {...props} />
-                      ),
-                      blockquote: ({ node, ...props }) => (
-                        <blockquote className="border-l-4 border-gray-300 pl-4 my-2 italic" {...props} />
-                      ),
-                    }}
-                  >
-                    {message.content}
-                  </ReactMarkdown>
+                {editingMessageId === message.id ? (
+                  <div className="space-y-2">
+                    <Textarea
+                      value={editedContent}
+                      onChange={(e) => setEditedContent(e.target.value)}
+                      className="min-h-[100px] bg-background/80 text-foreground"
+                      placeholder="Edit your message..."
+                    />
+                    <div className="flex justify-end gap-2">
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        onClick={cancelEditing}
+                      >
+                        <X className="w-3 h-3 mr-1" /> Cancel
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        onClick={() => saveEdit(message.id)}
+                      >
+                        Save
+                      </Button>
+                    </div>
+                  </div>
                 ) : (
-                  <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                  <>
+                    {message.role === 'assistant' ? (
+                      <ReactMarkdown
+                        remarkPlugins={[remarkGfm]}
+                        components={{
+                          p: ({ node, ...props }) => (
+                            <p className="text-sm whitespace-pre-wrap" {...props} />
+                          ),
+                          a: ({ node, ...props }) => (
+                            <a className="text-blue-500 hover:underline" {...props} target="_blank" rel="noopener noreferrer" />
+                          ),
+                          ul: ({ node, ...props }) => (
+                            <ul className="list-disc pl-5 my-2" {...props} />
+                          ),
+                          ol: ({ node, ...props }) => (
+                            <ol className="list-decimal pl-5 my-2" {...props} />
+                          ),
+                          li: ({ node, ...props }) => (
+                            <li className="my-1" {...props} />
+                          ),
+                          h1: ({ node, ...props }) => (
+                            <h1 className="text-lg font-bold my-2" {...props} />
+                          ),
+                          h2: ({ node, ...props }) => (
+                            <h2 className="text-md font-bold my-2" {...props} />
+                          ),
+                          h3: ({ node, ...props }) => (
+                            <h3 className="text-sm font-bold my-2" {...props} />
+                          ),
+                          code: ({ node, className, children, ...props }: any) => {
+                            const match = /language-(\w+)/.exec(className || '');
+                            const isInline = !className;
+                            return isInline ? (
+                              <code className="bg-black/10 px-1 py-0.5 rounded" {...props}>
+                                {children}
+                              </code>
+                            ) : (
+                              <code className="block bg-black/10 p-2 my-2 rounded overflow-x-auto" {...props}>
+                                {children}
+                              </code>
+                            );
+                          },
+                          pre: ({ node, ...props }) => (
+                            <pre className="bg-black/10 p-2 my-2 rounded overflow-x-auto" {...props} />
+                          ),
+                          blockquote: ({ node, ...props }) => (
+                            <blockquote className="border-l-4 border-gray-300 pl-4 my-2 italic" {...props} />
+                          ),
+                        }}
+                      >
+                        {message.content}
+                      </ReactMarkdown>
+                    ) : (
+                      <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                    )}
+                    <div className="mt-1 text-right flex justify-end items-center gap-1">
+                      {message.role === 'assistant' ? (
+                        <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-secondary-foreground/10 text-secondary-foreground/70">
+                          Gemini
+                        </span>
+                      ) : (
+                        <div className="flex gap-1">
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-5 w-5 rounded-full hover:bg-primary-foreground/10"
+                            onClick={() => startEditing(message)}
+                          >
+                            <PencilLine className="h-3 w-3" />
+                            <span className="sr-only">Edit message</span>
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-5 w-5 rounded-full hover:bg-primary-foreground/10"
+                            onClick={() => resendMessage(message)}
+                          >
+                            <MessageSquare className="h-3 w-3" />
+                            <span className="sr-only">Reuse message</span>
+                          </Button>
+                        </div>
+                      )}
+                      <span className={`text-xs ${message.role === 'user' ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}>
+                        {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    </div>
+                  </>
                 )}
-                <div className="mt-1 text-right flex justify-end items-center gap-1">
-                  {message.role === 'assistant' && (
-                    <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-secondary-foreground/10 text-secondary-foreground/70">
-                      Gemini
-                    </span>
-                  )}
-                  <span className={`text-xs ${message.role === 'user' ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}>
-                    {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </span>
-                </div>
               </div>
             </motion.div>
           ))}
@@ -296,7 +406,7 @@ const ChatInterface = ({ className = "", initialQuestion, mbtiType }: ChatInterf
           <Textarea
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            placeholder="Type your message..."
+            placeholder="Type your message... (career & education guidance only)"
             className="resize-none min-h-[56px] max-h-[140px]"
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
