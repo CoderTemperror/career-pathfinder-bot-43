@@ -19,7 +19,38 @@ import StorageService from '@/services/storage';
 import { Sparkles } from 'lucide-react';
 import { mbtiQuestions, calculateMBTIType, personalityDescriptions } from '@/utils/mbtiCalculator';
 
-const questions = [
+interface QuestionOption {
+  value: string;
+  label: string;
+}
+
+interface BaseQuestion {
+  id: string;
+  title: string;
+  type: 'radio' | 'checkbox' | 'text' | 'textarea';
+}
+
+interface TextQuestion extends BaseQuestion {
+  type: 'text' | 'textarea';
+  placeholder: string;
+}
+
+interface ChoiceQuestion extends BaseQuestion {
+  type: 'radio' | 'checkbox';
+  options: QuestionOption[];
+}
+
+type Question = TextQuestion | ChoiceQuestion;
+
+interface MBTIQuestion {
+  id: string;
+  title: string;
+  type: 'radio';
+  optionA?: string;
+  optionB?: string;
+}
+
+const questions: Question[] = [
   {
     id: 'education',
     title: 'What is your highest level of education?',
@@ -124,9 +155,13 @@ const Assessment = () => {
   const regularProgress = !showingMbtiQuestions ? 
     ((currentStep + 1) / questions.length) * 100 : 0;
   
-  const currentQuestion = !showingMbtiQuestions ? 
+  const currentQuestion: Question | MBTIQuestion = !showingMbtiQuestions ? 
     questions[currentStep] : 
-    { id: `mbti-${mbtiQuestions[currentMbtiQuestionIndex].id}`, title: "Which statement describes you better?", type: "radio" };
+    { 
+      id: `mbti-${mbtiQuestions[currentMbtiQuestionIndex].id}`, 
+      title: "Which statement describes you better?", 
+      type: "radio" 
+    };
   
   useEffect(() => {
     const savedAnswers = StorageService.getAssessmentData();
@@ -578,17 +613,17 @@ Choose career IDs from this list:
   };
   
   const renderQuestionInput = () => {
-    const question = currentQuestion;
-    
     if (showingMbtiQuestions) {
       return renderMbtiQuestionInput();
     }
+    
+    const question = currentQuestion as Question;
     
     switch (question.type) {
       case 'text':
         return (
           <Input
-            placeholder={question.placeholder || ''}
+            placeholder={(question as TextQuestion).placeholder || ''}
             value={answers[question.id] || ''}
             onChange={(e) => handleInputChange(question.id, e.target.value)}
             className="w-full"
@@ -598,7 +633,7 @@ Choose career IDs from this list:
       case 'textarea':
         return (
           <Textarea
-            placeholder={question.placeholder || ''}
+            placeholder={(question as TextQuestion).placeholder || ''}
             value={answers[question.id] || ''}
             onChange={(e) => handleInputChange(question.id, e.target.value)}
             className="w-full min-h-[150px]"
@@ -612,7 +647,7 @@ Choose career IDs from this list:
             onValueChange={(value) => handleInputChange(question.id, value)}
             className="space-y-3"
           >
-            {question.options && question.options.map((option) => (
+            {(question as ChoiceQuestion).options && (question as ChoiceQuestion).options.map((option) => (
               <div key={option.value} className="flex items-center space-x-2">
                 <RadioGroupItem value={option.value} id={option.value} />
                 <Label htmlFor={option.value} className="cursor-pointer">
@@ -626,7 +661,7 @@ Choose career IDs from this list:
       case 'checkbox':
         return (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {question.options && question.options.map((option) => (
+            {(question as ChoiceQuestion).options && (question as ChoiceQuestion).options.map((option) => (
               <div key={option.value} className="flex items-center space-x-2">
                 <Checkbox
                   id={option.value}
@@ -861,3 +896,4 @@ Choose career IDs from this list:
 };
 
 export default Assessment;
+
