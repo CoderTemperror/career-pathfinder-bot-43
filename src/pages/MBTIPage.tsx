@@ -4,11 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import TransitionLayout from '@/components/TransitionLayout';
 import Navbar from '@/components/Navbar';
 import MBTIAssessment from '@/components/MBTIAssessment';
-import { Sparkles, ArrowRight, Check } from 'lucide-react';
-import GeminiConfig from '@/components/GeminiConfig';
+import { Bot, ArrowRight, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
 import StorageService from '@/services/storage';
 
 const MBTIPage = () => {
@@ -54,15 +51,11 @@ const MBTIPage = () => {
             
             <div className="flex justify-center items-center mt-4 mb-2">
               <div className="flex items-center bg-primary/10 p-3 rounded-lg mb-2">
-                <Sparkles className="h-5 w-5 text-primary mr-2" />
+                <Bot className="h-5 w-5 text-primary mr-2" />
                 <p className="text-sm">
-                  Powered by Google Gemini 2.0 Flash (Free Tier)
+                  Powered by advanced AI technology
                 </p>
               </div>
-            </div>
-            
-            <div className="flex justify-center">
-              <GeminiConfig />
             </div>
           </div>
           

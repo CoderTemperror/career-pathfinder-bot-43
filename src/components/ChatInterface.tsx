@@ -1,7 +1,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Sparkles, RotateCcw, Loader2, PencilLine, X, MessageSquare } from 'lucide-react';
+import { Send, Bot, RotateCcw, Loader2, PencilLine, X, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar } from '@/components/ui/avatar';
@@ -63,7 +63,7 @@ const ChatInterface = ({ className = "", initialQuestion, mbtiType }: ChatInterf
     }
   }, [initialQuestion]);
 
-  const getGeminiResponse = async (userMessage: string): Promise<string> => {
+  const getAIResponse = async (userMessage: string): Promise<string> => {
     try {
       // Create a system prompt with career guidance instructions
       const systemPrompt = `You are a helpful career advisor. Your goal is to help users explore career options based on their skills, interests, education, and preferences. 
@@ -85,7 +85,7 @@ const ChatInterface = ({ className = "", initialQuestion, mbtiType }: ChatInterf
         
         ${mbtiType ? `\nThe user's MBTI type is ${mbtiType}. Consider this personality type when providing career advice and suggestions.` : ''}`;
       
-      // Send the system prompt as a separate message for the Gemini API
+      // Send the system prompt as a separate message for the API
       const messages = [
         {
           role: 'system',
@@ -101,7 +101,7 @@ const ChatInterface = ({ className = "", initialQuestion, mbtiType }: ChatInterf
       
       return response;
     } catch (error) {
-      console.error("Error with Gemini:", error);
+      console.error("Error with AI:", error);
       throw error;
     }
   };
@@ -121,14 +121,13 @@ const ChatInterface = ({ className = "", initialQuestion, mbtiType }: ChatInterf
     setIsLoading(true);
     
     try {
-      const aiResponseText = await getGeminiResponse(inputValue);
+      const aiResponseText = await getAIResponse(inputValue);
       
       const aiMessage: ChatMessage = {
         id: uuidv4(),
         role: 'assistant',
         content: aiResponseText,
         timestamp: new Date(),
-        metadata: { model: 'gemini' }
       };
       
       setMessages(prev => [...prev, aiMessage]);
@@ -198,15 +197,15 @@ const ChatInterface = ({ className = "", initialQuestion, mbtiType }: ChatInterf
   };
 
   return (
-    <div className={`flex flex-col w-full h-[80vh] max-h-[80vh] overflow-hidden rounded-2xl glass border shadow-sm ${className}`}>
+    <div className={`flex flex-col w-full h-[80vh] max-h-[80vh] overflow-hidden rounded-xl glass border shadow-sm ${className}`}>
       <div className="flex items-center justify-between p-4 border-b">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-            <Sparkles className="w-5 h-5 text-primary" />
+            <Bot className="w-5 h-5 text-primary" />
           </div>
           <div>
             <h3 className="font-medium">Career Assistant</h3>
-            <p className="text-xs text-muted-foreground">Powered by Google Gemini</p>
+            <p className="text-xs text-muted-foreground">Powered by AI</p>
           </div>
         </div>
         <Button 
@@ -235,7 +234,7 @@ const ChatInterface = ({ className = "", initialQuestion, mbtiType }: ChatInterf
             >
               {message.role === 'assistant' ? (
                 <Avatar className="w-8 h-8 mt-1 bg-primary text-primary-foreground">
-                  <Sparkles className="w-4 h-4" />
+                  <Bot className="w-4 h-4" />
                 </Avatar>
               ) : (
                 <Avatar className="w-8 h-8 mt-1 bg-secondary text-secondary-foreground">
@@ -331,11 +330,7 @@ const ChatInterface = ({ className = "", initialQuestion, mbtiType }: ChatInterf
                       <p className="text-sm whitespace-pre-wrap">{message.content}</p>
                     )}
                     <div className="mt-1 text-right flex justify-end items-center gap-1">
-                      {message.role === 'assistant' ? (
-                        <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-secondary-foreground/10 text-secondary-foreground/70">
-                          Gemini
-                        </span>
-                      ) : (
+                      {message.role === 'user' && (
                         <div className="flex gap-1">
                           <Button 
                             variant="ghost" 
@@ -375,7 +370,7 @@ const ChatInterface = ({ className = "", initialQuestion, mbtiType }: ChatInterf
             className="flex gap-3"
           >
             <Avatar className="w-8 h-8 mt-1 bg-primary text-primary-foreground">
-              <Sparkles className="w-4 h-4" />
+              <Bot className="w-4 h-4" />
             </Avatar>
             <div className="p-4 rounded-xl max-w-[80%] bg-secondary">
               <div className="flex items-center gap-2">
@@ -385,7 +380,7 @@ const ChatInterface = ({ className = "", initialQuestion, mbtiType }: ChatInterf
                   <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce [animation-delay:0.4s]" />
                 </div>
                 <span className="text-sm text-muted-foreground ml-2">
-                  Processing with Gemini...
+                  Thinking...
                 </span>
               </div>
             </div>
@@ -407,7 +402,7 @@ const ChatInterface = ({ className = "", initialQuestion, mbtiType }: ChatInterf
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             placeholder="Type your message... (career & education guidance only)"
-            className="resize-none min-h-[56px] max-h-[140px]"
+            className="resize-none min-h-[56px] max-h-[140px] font-medium"
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();

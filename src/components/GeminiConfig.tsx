@@ -8,10 +8,9 @@ import GeminiService from '@/services/gemini';
 const GeminiConfig = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
-  const [modelName, setModelName] = useState('gemini-2.0-flash');
 
   useEffect(() => {
-    // Check if Gemini service is initialized
+    // Check if AI service is initialized
     const isInit = GeminiService.isInitialized();
     setIsInitialized(isInit);
     
@@ -19,10 +18,6 @@ const GeminiConfig = () => {
     if (!isInit) {
       GeminiService.initialize();
     }
-
-    // Get the model configuration
-    const config = GeminiService.getConfig();
-    setModelName(config.model);
   }, []);
 
   return (
@@ -30,20 +25,20 @@ const GeminiConfig = () => {
       <DialogTrigger asChild>
         <Button variant="outline" className="ml-2 relative" size="sm">
           <Key className="h-4 w-4 mr-2" />
-          Gemini API Status
+          AI Status
           <span className={`absolute -top-1 -right-1 h-3 w-3 rounded-full ${isInitialized ? 'bg-green-500' : 'bg-red-500'}`}>
-            <span className="sr-only">Gemini {isInitialized ? 'connected' : 'disconnected'}</span>
+            <span className="sr-only">AI {isInitialized ? 'connected' : 'disconnected'}</span>
           </span>
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Gemini API Configuration</DialogTitle>
+          <DialogTitle>AI Configuration</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 py-4">
           <div className="space-y-2">
             <p className="text-sm text-muted-foreground">
-              Gemini API is pre-configured in this application. You don't need to provide an API key.
+              AI services are pre-configured in this application. You don't need to provide an API key.
             </p>
           </div>
           <div className="flex items-center space-x-2">
@@ -61,15 +56,9 @@ const GeminiConfig = () => {
               </p>
             </div>
           </div>
-          <div className="flex items-center space-x-2">
-            <div className="flex-1">
-              <p className="text-sm font-medium">Model:</p>
-              <p className="text-sm text-muted-foreground">{modelName} (Free Tier)</p>
-            </div>
-          </div>
           <div className="space-y-2">
             <p className="text-xs text-muted-foreground">
-              This application uses the Google Gemini API to provide AI-powered career guidance.
+              This application uses advanced AI technology to provide career guidance.
             </p>
           </div>
         </div>

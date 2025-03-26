@@ -30,8 +30,6 @@ const Navbar = () => {
   const routes = [
     { href: "/", label: "Home" },
     { href: "/assessment", label: "Assessment" },
-    { href: "/pathway", label: "Career Pathways" },
-    { href: "/resources", label: "Resources" },
     { href: "/chat", label: "Chat" },
   ];
 
