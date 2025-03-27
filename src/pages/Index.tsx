@@ -52,8 +52,8 @@ const Index = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              whileHover={{ y: -5, boxShadow: "0 10px 25px rgba(0, 0, 0, 0.08)" }}
-              className="bg-card rounded-xl p-6 shadow-sm border transition-all duration-300"
+              whileHover={{ y: -5, boxShadow: "0 10px 25px rgba(0, 0, 0, 0.15)" }}
+              className="bg-card rounded-xl p-6 shadow-sm border transition-all duration-300 hover:shadow-xl"
             >
               <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
                 <Brain className="h-6 w-6 text-primary" />
@@ -68,8 +68,8 @@ const Index = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              whileHover={{ y: -5, boxShadow: "0 10px 25px rgba(0, 0, 0, 0.08)" }}
-              className="bg-card rounded-xl p-6 shadow-sm border transition-all duration-300"
+              whileHover={{ y: -5, boxShadow: "0 10px 25px rgba(0, 0, 0, 0.15)" }}
+              className="bg-card rounded-xl p-6 shadow-sm border transition-all duration-300 hover:shadow-xl"
             >
               <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
                 <MessageSquare className="h-6 w-6 text-primary" />
@@ -82,7 +82,7 @@ const Index = () => {
             </motion.div>
           </div>
 
-          <div className="bg-card rounded-xl p-8 border mb-16 transition-all duration-300 hover:shadow-md">
+          <div className="bg-card rounded-xl p-8 border mb-16 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
             <div className="flex items-center mb-6">
               <Sparkles className="h-5 w-5 text-primary mr-2" />
               <h2 className="text-2xl font-semibold">AI-Powered Career Guidance</h2>
@@ -93,11 +93,11 @@ const Index = () => {
               personality. Get detailed insights on:
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-              <div className="p-4 bg-secondary/80 rounded-lg hover:bg-secondary transition-colors duration-300">
+              <div className="p-4 bg-secondary/80 rounded-lg hover:bg-secondary transition-colors duration-300 hover:shadow-md">
                 <Lightbulb className="h-5 w-5 text-primary mb-2" />
                 <h3 className="font-medium">Career Matches</h3>
               </div>
-              <div className="p-4 bg-secondary/80 rounded-lg hover:bg-secondary transition-colors duration-300">
+              <div className="p-4 bg-secondary/80 rounded-lg hover:bg-secondary transition-colors duration-300 hover:shadow-md">
                 <Lightbulb className="h-5 w-5 text-primary mb-2" />
                 <h3 className="font-medium">Education Paths</h3>
               </div>
