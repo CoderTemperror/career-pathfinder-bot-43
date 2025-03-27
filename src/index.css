@@ -204,11 +204,11 @@ html {
 
 /* Chat message bubble styles */
 .chat-message-user {
-  @apply bg-blue-500 text-white py-2 px-4 rounded-lg rounded-tr-none;
+  @apply bg-blue-500 text-white py-2 px-4 rounded-lg rounded-tr-none max-w-fit;
 }
 
 .chat-message-assistant {
-  @apply bg-muted py-2 px-4 rounded-lg rounded-tl-none;
+  @apply bg-muted py-2 px-4 rounded-lg rounded-tl-none max-w-full;
 }
 
 /* Prevent overflow content issues */
@@ -222,4 +222,23 @@ html {
 
 .prose-chat pre {
   @apply max-w-full overflow-x-auto;
+}
+
+/* Full-width chat container */
+.chat-full-width {
+  @apply w-full max-w-5xl mx-auto px-4;
+}
+
+/* User message container styles */
+.user-message-container {
+  @apply flex justify-end mb-6;
+}
+
+.user-message {
+  @apply bg-blue-500 text-white py-2.5 px-4 rounded-2xl rounded-tr-none max-w-[80%] break-words;
+}
+
+/* Assistant message container styles */
+.assistant-message-container {
+  @apply flex justify-start mb-6;
 }

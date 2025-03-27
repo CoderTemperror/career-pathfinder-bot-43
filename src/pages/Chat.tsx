@@ -59,18 +59,11 @@ const Chat = () => {
   return (
     <TransitionLayout>
       <Navbar />
-      <div className="flex min-h-screen max-h-screen pt-[72px] overflow-hidden">
-        {/* Sidebar for suggested prompts */}
-        <SuggestedPromptsSidebar 
-          onSelectPrompt={handleSelectPrompt}
-          isOpen={sidebarOpen}
-          onToggle={toggleSidebar}
-        />
-        
-        {/* Chat content */}
-        <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex h-screen w-full pt-[72px] overflow-hidden">
+        {/* Full width chat content */}
+        <div className="flex-1 flex flex-col overflow-hidden relative w-full">
           <div className="px-4 py-3 border-b bg-background sticky top-0 z-10">
-            <div className="max-w-3xl mx-auto flex items-center">
+            <div className="max-w-5xl mx-auto flex items-center">
               <Button
                 variant="ghost"
                 size="icon"
@@ -103,6 +96,13 @@ const Chat = () => {
             <ChatInterface initialQuestion={currentPrompt} mbtiType={mbtiType} />
           </div>
         </div>
+
+        {/* Sidebar for suggested prompts - now as an overlay */}
+        <SuggestedPromptsSidebar 
+          onSelectPrompt={handleSelectPrompt}
+          isOpen={sidebarOpen}
+          onToggle={toggleSidebar}
+        />
       </div>
     </TransitionLayout>
   );

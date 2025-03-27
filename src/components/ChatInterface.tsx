@@ -214,7 +214,7 @@ const ChatInterface = ({ className = "", initialQuestion, mbtiType }: ChatInterf
         ref={messagesContainerRef}
         tabIndex={-1}
       >
-        <div className="max-w-3xl mx-auto px-4 pb-28 pt-4">
+        <div className="max-w-5xl mx-auto px-4 pb-28 pt-4">
           <AnimatePresence initial={false}>
             {messages.map((message) => (
               <motion.div
@@ -224,57 +224,55 @@ const ChatInterface = ({ className = "", initialQuestion, mbtiType }: ChatInterf
                 animate="animate"
                 exit="exit"
                 variants={chatMessageAnimation}
-                className={`${message.role === 'user' ? 'flex justify-end' : 'flex justify-start'} mb-6`}
+                className={message.role === 'user' ? 'user-message-container' : 'assistant-message-container'}
               >
                 {message.role === 'user' ? (
                   // User message - right-aligned with bubble background
-                  <div className="max-w-[80%]">
-                    <div className="bg-blue-500 dark:bg-blue-600 text-white py-2.5 px-4 rounded-2xl rounded-tr-none">
-                      {editingMessageId === message.id ? (
-                        <div className="min-w-[150px]">
-                          <Textarea
-                            value={editedContent}
-                            onChange={(e) => setEditedContent(e.target.value)}
-                            className="mb-2 min-h-[60px] text-sm bg-blue-600 border-blue-400 text-white placeholder:text-blue-200"
-                            autoFocus
-                          />
-                          <div className="flex justify-end gap-2">
-                            <Button variant="ghost" size="sm" onClick={cancelEditing} className="text-white hover:bg-blue-700">
-                              Cancel
-                            </Button>
-                            <Button size="sm" onClick={() => saveEdit(message.id)} className="bg-white text-blue-600 hover:bg-blue-100">
-                              Save
-                            </Button>
-                          </div>
+                  <div className="user-message">
+                    {editingMessageId === message.id ? (
+                      <div className="min-w-[150px]">
+                        <Textarea
+                          value={editedContent}
+                          onChange={(e) => setEditedContent(e.target.value)}
+                          className="mb-2 min-h-[60px] text-sm bg-blue-600 border-blue-400 text-white placeholder:text-blue-200"
+                          autoFocus
+                        />
+                        <div className="flex justify-end gap-2">
+                          <Button variant="ghost" size="sm" onClick={cancelEditing} className="text-white hover:bg-blue-700">
+                            Cancel
+                          </Button>
+                          <Button size="sm" onClick={() => saveEdit(message.id)} className="bg-white text-blue-600 hover:bg-blue-100">
+                            Save
+                          </Button>
                         </div>
-                      ) : (
-                        <div>
-                          <p className="text-sm whitespace-pre-wrap break-words">{message.content}</p>
-                          <div className="flex justify-end gap-2 mt-1 opacity-0 hover:opacity-100 transition-opacity">
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              className="h-5 w-5 rounded-full hover:bg-blue-600"
-                              onClick={() => startEditing(message)}
-                              tabIndex={-1}
-                            >
-                              <PencilLine className="h-3 w-3 text-white" />
-                              <span className="sr-only">Edit message</span>
-                            </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              className="h-5 w-5 rounded-full hover:bg-blue-600"
-                              onClick={() => resendMessage(message)}
-                              tabIndex={-1}
-                            >
-                              <MessageSquare className="h-3 w-3 text-white" />
-                              <span className="sr-only">Reuse message</span>
-                            </Button>
-                          </div>
+                      </div>
+                    ) : (
+                      <div>
+                        <p className="text-sm whitespace-pre-wrap break-words">{message.content}</p>
+                        <div className="flex justify-end gap-2 mt-1 opacity-0 hover:opacity-100 transition-opacity">
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-5 w-5 rounded-full hover:bg-blue-600"
+                            onClick={() => startEditing(message)}
+                            tabIndex={-1}
+                          >
+                            <PencilLine className="h-3 w-3 text-white" />
+                            <span className="sr-only">Edit message</span>
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-5 w-5 rounded-full hover:bg-blue-600"
+                            onClick={() => resendMessage(message)}
+                            tabIndex={-1}
+                          >
+                            <MessageSquare className="h-3 w-3 text-white" />
+                            <span className="sr-only">Reuse message</span>
+                          </Button>
                         </div>
-                      )}
-                    </div>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   // Assistant message - left-aligned with avatar
@@ -373,7 +371,7 @@ const ChatInterface = ({ className = "", initialQuestion, mbtiType }: ChatInterf
       
       {/* Chat input area - fixed at bottom */}
       <div className="fixed bottom-0 left-0 right-0 bg-background/80 backdrop-blur-md border-t py-3 px-4 md:px-0 z-20">
-        <div className="max-w-3xl mx-auto flex items-center">
+        <div className="max-w-5xl mx-auto flex items-center">
           <Button
             variant="outline"
             size="icon"
