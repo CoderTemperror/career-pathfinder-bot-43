@@ -13,6 +13,7 @@ import GeminiService from '@/services/gemini';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useIsMobile } from '@/hooks/use-mobile';
+import storageService from '@/services/storage';
 
 interface ChatInterfaceProps {
   className?: string;
@@ -21,16 +22,11 @@ interface ChatInterfaceProps {
 }
 
 const ChatInterface = ({ className = "", initialQuestion, mbtiType }: ChatInterfaceProps) => {
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      id: '1',
-      role: 'assistant',
-      content: mbtiType ? 
-        `Based on your assessment, your MBTI type is ${mbtiType}. This personality type has specific career strengths and preferences. How can I help you explore career paths that align with your ${mbtiType} personality type?` :
-        "Hi there! I'm your Career Pathfinder assistant. I can help you discover suitable careers based on your background, skills, and interests. What would you like to explore today?",
-      timestamp: new Date(),
-    }
-  ]);
+  const defaultWelcomeMessage = mbtiType ? 
+    `Based on your assessment, your MBTI type is ${mbtiType}. This personality type has specific career strengths and preferences. How can I help you explore career paths that align with your ${mbtiType} personality type?` :
+    "Hi there! I'm your Career Pathfinder assistant. I can help you discover suitable careers based on your background, skills, and interests. What would you like to explore today?";
+
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState(initialQuestion || "");
   const [isLoading, setIsLoading] = useState(false);
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
@@ -39,6 +35,35 @@ const ChatInterface = ({ className = "", initialQuestion, mbtiType }: ChatInterf
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const initialQuestionSent = useRef(false);
   const isMobile = useIsMobile();
+  
+  // Load chat history on initial render
+  useEffect(() => {
+    const savedMessages = storageService.getChatHistory();
+    
+    if (savedMessages && savedMessages.length > 0) {
+      // Convert date strings back to Date objects
+      const processedMessages = savedMessages.map(msg => ({
+        ...msg,
+        timestamp: new Date(msg.timestamp)
+      }));
+      setMessages(processedMessages);
+    } else {
+      // Set default welcome message if no history exists
+      setMessages([{
+        id: '1',
+        role: 'assistant',
+        content: defaultWelcomeMessage,
+        timestamp: new Date(),
+      }]);
+    }
+  }, [mbtiType]);
+
+  // Save messages to local storage whenever they change
+  useEffect(() => {
+    if (messages.length > 0) {
+      storageService.saveChatHistory(messages);
+    }
+  }, [messages]);
   
   useEffect(() => {
     if (messagesEndRef.current) {
@@ -160,14 +185,16 @@ const ChatInterface = ({ className = "", initialQuestion, mbtiType }: ChatInterf
   };
 
   const handleReset = () => {
-    setMessages([
-      {
-        id: uuidv4(),
-        role: 'assistant',
-        content: "Hi there! I'm your Career Pathfinder assistant. I can help you discover suitable careers based on your background, skills, and interests. What would you like to explore today?",
-        timestamp: new Date(),
-      }
-    ]);
+    const newWelcomeMessage = {
+      id: uuidv4(),
+      role: 'assistant',
+      content: defaultWelcomeMessage,
+      timestamp: new Date(),
+    };
+    
+    setMessages([newWelcomeMessage]);
+    storageService.clearChatHistory();
+    storageService.saveChatHistory([newWelcomeMessage]);
     
     toast.success("Started a new conversation");
   };
@@ -227,29 +254,29 @@ const ChatInterface = ({ className = "", initialQuestion, mbtiType }: ChatInterf
                 className={message.role === 'user' ? 'user-message-container' : 'assistant-message-container'}
               >
                 {message.role === 'user' ? (
-                  // User message - more compact and with better text wrapping
+                  // User message - more compact styling
                   <div className="user-message max-w-[80%] break-words">
                     {editingMessageId === message.id ? (
                       <div>
                         <Textarea
                           value={editedContent}
                           onChange={(e) => setEditedContent(e.target.value)}
-                          className="mb-2 min-h-[40px] max-h-[80px] text-sm bg-blue-600 border-blue-400 text-white placeholder:text-blue-200 resize-none"
+                          className="mb-2 min-h-[30px] max-h-[60px] text-sm bg-blue-600 border-blue-400 text-white placeholder:text-blue-200 resize-none"
                           autoFocus
                         />
                         <div className="flex justify-end gap-2">
-                          <Button variant="ghost" size="sm" onClick={cancelEditing} className="text-white hover:bg-blue-700">
+                          <Button variant="ghost" size="sm" onClick={cancelEditing} className="text-white hover:bg-blue-700 h-7 px-2 py-0 text-xs">
                             Cancel
                           </Button>
-                          <Button size="sm" onClick={() => saveEdit(message.id)} className="bg-white text-blue-600 hover:bg-blue-100">
+                          <Button size="sm" onClick={() => saveEdit(message.id)} className="bg-white text-blue-600 hover:bg-blue-100 h-7 px-2 py-0 text-xs">
                             Save
                           </Button>
                         </div>
                       </div>
                     ) : (
-                      <div>
-                        <p className="text-sm whitespace-pre-wrap break-words">{message.content}</p>
-                        <div className="flex justify-end gap-2 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="inline-block">
+                        <p className="text-sm whitespace-pre-wrap break-words py-2 px-3">{message.content}</p>
+                        <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                           <Button 
                             variant="ghost" 
                             size="icon" 
