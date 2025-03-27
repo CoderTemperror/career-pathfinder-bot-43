@@ -1,4 +1,3 @@
-
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
@@ -91,7 +90,7 @@ const SuggestedPromptsSidebar = ({ onSelectPrompt, isOpen, onToggle }: Suggested
             animate={{ x: 0 }}
             exit={{ x: "-100%" }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="fixed top-[72px] left-0 z-50 h-[calc(100vh-72px)] w-[280px] md:w-[320px] bg-background border-r shadow-lg overflow-hidden flex flex-col"
+            className="fixed top-[72px] left-0 z-50 h-[calc(100vh-72px)] w-[360px] md:w-[400px] bg-background border-r shadow-lg overflow-hidden flex flex-col"
           >
             <div className="py-4 px-4 flex-1 overflow-y-auto scrollbar-thin">
               <div className="flex justify-between items-center mb-4 sticky top-0 pt-2 pb-2 bg-background/95 backdrop-blur-sm z-10">
@@ -117,16 +116,16 @@ const SuggestedPromptsSidebar = ({ onSelectPrompt, isOpen, onToggle }: Suggested
                       <Button
                         key={index}
                         variant="outline"
-                        className="justify-start h-auto py-3 px-4 text-left border-primary/20 hover:border-primary/40 hover:bg-primary/5 transition-all w-full"
+                        className="justify-start h-auto py-3 px-4 text-left border-primary/20 hover:border-primary/40 hover:bg-primary/5 transition-all w-full whitespace-normal break-words"
                         onClick={() => {
                           onSelectPrompt(stream.prompt);
                           onToggle();
                         }}
                       >
                         {stream.icon}
-                        <div>
-                          <div className="font-medium">{stream.title}</div>
-                          <div className="text-xs text-muted-foreground mt-1">Explore options & colleges</div>
+                        <div className="ml-2">
+                          <div className="font-medium max-w-full break-words">{stream.title}</div>
+                          <div className="text-xs text-muted-foreground mt-1 max-w-full break-words">Explore options & colleges</div>
                         </div>
                       </Button>
                     ))}
@@ -141,14 +140,14 @@ const SuggestedPromptsSidebar = ({ onSelectPrompt, isOpen, onToggle }: Suggested
                         <Button
                           key={promptIndex}
                           variant="ghost"
-                          className="justify-start h-auto py-2 text-left text-sm hover:bg-primary/5 transition-all w-full"
+                          className="justify-start h-auto py-2 text-left text-sm hover:bg-primary/5 transition-all w-full whitespace-normal break-words"
                           onClick={() => {
                             onSelectPrompt(prompt);
                             onToggle();
                           }}
                         >
                           <Target className="h-3 w-3 mr-2 text-primary/70 shrink-0" />
-                          <span className="text-left break-normal">{prompt}</span>
+                          <span className="text-left break-words">{prompt}</span>
                         </Button>
                       ))}
                     </div>

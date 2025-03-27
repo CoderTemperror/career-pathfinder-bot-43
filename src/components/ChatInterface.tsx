@@ -227,14 +227,14 @@ const ChatInterface = ({ className = "", initialQuestion, mbtiType }: ChatInterf
                 className={message.role === 'user' ? 'user-message-container' : 'assistant-message-container'}
               >
                 {message.role === 'user' ? (
-                  // User message - right-aligned with bubble background
-                  <div className="user-message">
+                  // User message - more compact and with better text wrapping
+                  <div className="user-message max-w-[80%] break-words">
                     {editingMessageId === message.id ? (
-                      <div className="min-w-[150px]">
+                      <div>
                         <Textarea
                           value={editedContent}
                           onChange={(e) => setEditedContent(e.target.value)}
-                          className="mb-2 min-h-[60px] text-sm bg-blue-600 border-blue-400 text-white placeholder:text-blue-200"
+                          className="mb-2 min-h-[40px] max-h-[80px] text-sm bg-blue-600 border-blue-400 text-white placeholder:text-blue-200 resize-none"
                           autoFocus
                         />
                         <div className="flex justify-end gap-2">
@@ -249,7 +249,7 @@ const ChatInterface = ({ className = "", initialQuestion, mbtiType }: ChatInterf
                     ) : (
                       <div>
                         <p className="text-sm whitespace-pre-wrap break-words">{message.content}</p>
-                        <div className="flex justify-end gap-2 mt-1 opacity-0 hover:opacity-100 transition-opacity">
+                        <div className="flex justify-end gap-2 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
                           <Button 
                             variant="ghost" 
                             size="icon" 
