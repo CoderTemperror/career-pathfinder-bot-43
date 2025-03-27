@@ -2,7 +2,6 @@
 import TransitionLayout from '@/components/TransitionLayout';
 import Navbar from '@/components/Navbar';
 import ChatInterface from '@/components/ChatInterface';
-import SuggestedPrompts from '@/components/SuggestedPrompts';
 import { useSearchParams } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { getSuggestedPrompts } from '@/utils/mbtiCalculator';
@@ -49,7 +48,7 @@ const Chat = () => {
             
             <div className="col-span-12 mt-auto overflow-x-auto py-2">
               <div className="flex flex-nowrap gap-2 pb-1">
-                {(mbtiType && mbtiPrompts.length > 0 ? mbtiPrompts : getSuggestedPrompts()).map((prompt, index) => (
+                {(mbtiType && mbtiPrompts.length > 0 ? mbtiPrompts : getSuggestedPrompts('general')).map((prompt, index) => (
                   <button
                     key={index}
                     onClick={() => {
