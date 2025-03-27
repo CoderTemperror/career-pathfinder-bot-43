@@ -24,7 +24,7 @@ const ChatInterface = ({ className = "", initialQuestion, mbtiType }: ChatInterf
     handleReset,
     handleEditMessage,
     handleReuseMessage
-  } = useChatMessages({ initialQuestion, mbtiType });
+  } = useChatMessages({ initialQuestion, mbtiType, resetOnRefresh: true });
 
   return (
     <div className="flex flex-col w-full h-full overflow-hidden">

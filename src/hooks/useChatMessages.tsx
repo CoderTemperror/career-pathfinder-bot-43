@@ -9,9 +9,10 @@ import type { ChatMessage } from '@/types';
 interface UseChatMessagesOptions {
   initialQuestion?: string;
   mbtiType?: string; 
+  resetOnRefresh?: boolean;
 }
 
-export function useChatMessages({ initialQuestion, mbtiType }: UseChatMessagesOptions = {}) {
+export function useChatMessages({ initialQuestion, mbtiType, resetOnRefresh = false }: UseChatMessagesOptions = {}) {
   const defaultWelcomeMessage = mbtiType ? 
     `Based on your assessment, your MBTI type is ${mbtiType}. This personality type has specific career strengths and preferences. How can I help you explore career paths that align with your ${mbtiType} personality type?` :
     "Hi there! I'm your Career Pathfinder assistant. I can help you discover suitable careers based on your background, skills, and interests. What would you like to explore today?";
@@ -21,8 +22,22 @@ export function useChatMessages({ initialQuestion, mbtiType }: UseChatMessagesOp
   const [isLoading, setIsLoading] = useState(false);
   const initialQuestionSent = useRef(false);
   
-  // Load chat history on initial render
+  // Check for session identifier in localStorage
   useEffect(() => {
+    // If resetOnRefresh is true, we'll create a new session ID on each page load
+    if (resetOnRefresh) {
+      const currentSessionId = sessionStorage.getItem('chat_session_id');
+      const newSessionId = uuidv4();
+      
+      // If there's no session ID or it's different (page was refreshed), reset the chat
+      if (!currentSessionId) {
+        sessionStorage.setItem('chat_session_id', newSessionId);
+        handleReset();
+        return;
+      }
+    }
+    
+    // If we're not resetting or the session is the same, load saved messages
     const savedMessages = storageService.getChatHistory();
     
     if (savedMessages && savedMessages.length > 0) {
@@ -41,7 +56,7 @@ export function useChatMessages({ initialQuestion, mbtiType }: UseChatMessagesOp
         timestamp: new Date(),
       }]);
     }
-  }, [mbtiType, defaultWelcomeMessage]);
+  }, [mbtiType, defaultWelcomeMessage, resetOnRefresh]);
 
   // Save messages to local storage whenever they change
   useEffect(() => {
