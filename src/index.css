@@ -1,6 +1,4 @@
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -27,13 +25,6 @@
     --input: 240 5.9% 90%;
     --ring: 240 5.9% 10%;
     --radius: 0.75rem;
-    
-    /* Custom color accents */
-    --blue-accent: 214 100% 60%;
-    --indigo-accent: 240 60% 60%;
-    --green-accent: 160 84% 39%;
-    --amber-accent: 30 100% 50%;
-    --rose-accent: 350 100% 66%;
   }
  
   .dark {
@@ -56,13 +47,6 @@
     --border: 240 3.7% 15.9%;
     --input: 240 3.7% 15.9%;
     --ring: 240 4.9% 83.9%;
-    
-    /* Custom color accents in dark mode */
-    --blue-accent: 214 100% 50%;
-    --indigo-accent: 240 70% 70%;
-    --green-accent: 160 84% 39%;
-    --amber-accent: 30 100% 50%;
-    --rose-accent: 350 100% 66%;
   }
 }
  
@@ -71,41 +55,13 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground font-sans;
-  }
-  h1, h2, h3, h4, h5, h6 {
-    @apply font-display tracking-tight;
-  }
-  code {
-    @apply font-mono;
-  }
-
-  /* Fine-tune font sizes */
-  h1 {
-    @apply text-3xl md:text-4xl font-semibold;
-  }
-  
-  h2 {
-    @apply text-2xl md:text-3xl font-semibold;
-  }
-  
-  h3 {
-    @apply text-xl md:text-2xl font-medium;
-  }
-  
-  p {
-    @apply leading-relaxed;
+    @apply bg-background text-foreground;
   }
 }
 
 /* Add smooth scrolling to the whole document */
 html {
   scroll-behavior: smooth;
-}
-
-/* Card hover effects */
-.hover-card {
-  @apply transition-all duration-300 hover:shadow-md hover:-translate-y-1;
 }
 
 /* Additional Animation Classes */
@@ -139,87 +95,4 @@ html {
   opacity: 0;
   transform: translateY(-20px);
   transition: opacity 300ms, transform 300ms;
-}
-
-/* Custom scrollbar */
-.scrollbar-thin::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
-}
-
-.scrollbar-thin::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.scrollbar-thin::-webkit-scrollbar-thumb {
-  background: hsl(var(--muted-foreground) / 0.3);
-  border-radius: 10px;
-}
-
-.scrollbar-thin::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--muted-foreground) / 0.5);
-}
-
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: hsl(var(--muted-foreground) / 0.3);
-  border-radius: 10px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--muted-foreground) / 0.5);
-}
-
-/* Glass effect */
-.glass {
-  @apply backdrop-blur-sm bg-background/70 border;
-}
-
-/* Fix black space problem in Chat */
-.overflow-fix {
-  overflow: hidden !important;
-  max-height: 100vh;
-}
-
-/* Gradient text */
-.text-gradient-primary {
-  @apply bg-gradient-to-r from-blue-500 to-indigo-500 bg-clip-text text-transparent;
-}
-
-.text-gradient-secondary {
-  @apply bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent;
-}
-
-.text-gradient-accent {
-  @apply bg-gradient-to-r from-green-400 to-emerald-500 bg-clip-text text-transparent;
-}
-
-/* Card hover animation */
-.card-hover {
-  @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-1 hover:bg-opacity-95;
-}
-
-/* Color Accents */
-.accent-blue {
-  @apply text-blue-500 dark:text-blue-400;
-}
-
-.accent-indigo {
-  @apply text-indigo-500 dark:text-indigo-400;
-}
-
-.accent-green {
-  @apply text-green-500 dark:text-green-400;
-}
-
-.accent-amber {
-  @apply text-amber-500 dark:text-amber-400;
 }

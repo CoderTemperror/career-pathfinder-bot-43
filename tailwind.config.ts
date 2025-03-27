@@ -19,11 +19,6 @@ export default {
       },
     },
     extend: {
-      fontFamily: {
-        sans: ["Inter", "system-ui", "sans-serif"],
-        display: ["Poppins", "system-ui", "sans-serif"],
-        mono: ["Fira Code", "monospace"],
-      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -57,22 +52,6 @@ export default {
         card: {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
-        },
-        amber: {
-          400: "#FBBF24",
-          500: "#F59E0B",
-        },
-        indigo: {
-          400: "#818CF8",
-          500: "#6366F1",
-        },
-        green: {
-          400: "#34D399",
-          500: "#10B981",
-        },
-        blue: {
-          400: "#60A5FA",
-          500: "#3B82F6",
         },
       },
       borderRadius: {

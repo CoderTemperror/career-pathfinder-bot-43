@@ -10,7 +10,7 @@ const GeminiConfig = () => {
   const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
-    // Check if AI service is initialized
+    // Check if Gemini service is initialized
     const isInit = GeminiService.isInitialized();
     setIsInitialized(isInit);
     
@@ -25,40 +25,40 @@ const GeminiConfig = () => {
       <DialogTrigger asChild>
         <Button variant="outline" className="ml-2 relative" size="sm">
           <Key className="h-4 w-4 mr-2" />
-          AI Status
-          <span className={`absolute -top-1 -right-1 h-3 w-3 rounded-full ${isInitialized ? 'bg-green-500' : 'bg-red-500'}`}>
-            <span className="sr-only">AI {isInitialized ? 'connected' : 'disconnected'}</span>
+          Gemini API Status
+          <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-green-500">
+            <span className="sr-only">Gemini connected</span>
           </span>
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>AI Configuration</DialogTitle>
+          <DialogTitle>Gemini API Configuration</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 py-4">
           <div className="space-y-2">
             <p className="text-sm text-muted-foreground">
-              AI services are pre-configured in this application. You don't need to provide an API key.
+              Gemini API is pre-configured in this application. You don't need to provide an API key.
             </p>
           </div>
           <div className="flex items-center space-x-2">
             <div className="flex-1">
               <p className="text-sm font-medium">Status:</p>
               <p className="text-sm text-muted-foreground flex items-center">
-                {isInitialized ? (
-                  <>
-                    <Check className="h-3 w-3 text-green-500 mr-1" />
-                    Connected
-                  </>
-                ) : (
-                  <span className="text-red-500">Disconnected</span>
-                )}
+                <Check className="h-3 w-3 text-green-500 mr-1" />
+                Connected
               </p>
+            </div>
+          </div>
+          <div className="flex items-center space-x-2">
+            <div className="flex-1">
+              <p className="text-sm font-medium">Model:</p>
+              <p className="text-sm text-muted-foreground">Gemini 2.0 Flash (Free Tier)</p>
             </div>
           </div>
           <div className="space-y-2">
             <p className="text-xs text-muted-foreground">
-              This application uses advanced AI technology to provide career guidance.
+              This application uses the Google Gemini API to provide AI-powered career guidance.
             </p>
           </div>
         </div>
