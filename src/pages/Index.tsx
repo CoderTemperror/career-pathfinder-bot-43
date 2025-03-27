@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import TransitionLayout from '@/components/TransitionLayout';
 import Navbar from '@/components/Navbar';
 import { Button } from '@/components/ui/button';
-import { Sparkles, BarChart3, MessageSquare, Brain, Lightbulb } from 'lucide-react';
+import { Sparkles, BarChart3, MessageSquare, Brain, Lightbulb, School, Compass, Target } from 'lucide-react';
 
 const Index = () => {
   const navigate = useNavigate();

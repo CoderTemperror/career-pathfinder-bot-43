@@ -6,7 +6,7 @@ import SuggestedPromptsSidebar from '@/components/SuggestedPromptsSidebar';
 import { useSearchParams } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { getSuggestedPrompts } from '@/utils/mbtiCalculator';
-import { MenuIcon } from 'lucide-react';
+import { Lightbulb } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const Chat = () => {
@@ -71,7 +71,7 @@ const Chat = () => {
                 className="mr-3 h-8 w-8 flex-shrink-0"
                 aria-label="Toggle sidebar"
               >
-                <MenuIcon className="h-5 w-5" />
+                <Lightbulb className="h-5 w-5" />
               </Button>
               
               <div className="flex-1">
