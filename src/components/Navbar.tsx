@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
-import { Lightbulb, X } from "lucide-react";
+import { Lightbulb, X, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ThemeToggle from "@/components/ThemeToggle";
 
@@ -93,11 +93,7 @@ const Navbar = () => {
                 {isOpen ? (
                   <X className="h-5 w-5" />
                 ) : (
-                  location.pathname === "/chat" ? (
-                    <Lightbulb className="h-5 w-5" />
-                  ) : (
-                    <Lightbulb className="h-5 w-5" />
-                  )
+                  <Menu className="h-5 w-5" />
                 )}
               </Button>
             </div>
