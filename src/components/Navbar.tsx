@@ -27,12 +27,6 @@ const Navbar = () => {
     closeMenu();
   }, [location.pathname]);
 
-  const routes = [
-    { href: "/", label: "Home" },
-    { href: "/mbti", label: "MBTI Test" },
-    { href: "/chat", label: "Chat" },
-  ];
-
   return (
     <div
       className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 ${
@@ -43,28 +37,47 @@ const Navbar = () => {
         <div className="flex w-full items-center justify-between">
           <Link
             to="/"
-            className="font-display text-xl font-bold tracking-tight inline-flex flex-col items-center"
+            className="font-display text-xl font-bold tracking-tight inline-flex flex-col items-start"
           >
             <span className="text-gradient-primary bg-gradient-to-r from-blue-500 to-indigo-500 bg-clip-text text-transparent">Career Compass</span>
             <span className="text-xs text-muted-foreground">SBH 2025 Junior</span>
           </Link>
 
-          <div className="hidden md:flex items-center justify-center flex-1">
-            <div className="flex items-center space-x-2">
-              {routes.map((route) => (
-                <Link
-                  key={route.href}
-                  to={route.href}
-                  className={`px-4 py-2 rounded-md text-sm transition-colors ${
-                    location.pathname === route.href
-                      ? "bg-primary/10 font-medium text-foreground"
-                      : "text-muted-foreground hover:text-foreground hover:bg-accent"
-                  }`}
-                >
-                  {route.label}
-                </Link>
-              ))}
+          <div className="hidden md:flex items-center justify-between flex-1">
+            <Link
+              to="/"
+              className={`px-4 py-2 rounded-md text-sm transition-colors ${
+                location.pathname === "/"
+                  ? "bg-primary/10 font-medium text-foreground"
+                  : "text-muted-foreground hover:text-foreground hover:bg-accent"
+              }`}
+            >
+              Home
+            </Link>
+            
+            <div className="flex-1 flex justify-center">
+              <Link
+                to="/mbti"
+                className={`px-4 py-2 rounded-md text-sm transition-colors ${
+                  location.pathname === "/mbti"
+                    ? "bg-primary/10 font-medium text-foreground"
+                    : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                }`}
+              >
+                MBTI Test
+              </Link>
             </div>
+            
+            <Link
+              to="/chat"
+              className={`px-4 py-2 rounded-md text-sm transition-colors ${
+                location.pathname === "/chat"
+                  ? "bg-primary/10 font-medium text-foreground"
+                  : "text-muted-foreground hover:text-foreground hover:bg-accent"
+              }`}
+            >
+              Chat
+            </Link>
           </div>
 
           <div className="flex items-center gap-2">
@@ -97,20 +110,37 @@ const Navbar = () => {
             transition={{ duration: 0.3 }}
             className="md:hidden overflow-hidden bg-background border-b"
           >
-            <div className="container px-4 py-4 space-y-1">
-              {routes.map((route) => (
-                <Link
-                  key={route.href}
-                  to={route.href}
-                  className={`block px-3 py-2 rounded-md ${
-                    location.pathname === route.href
-                      ? "bg-primary/10 font-medium text-foreground"
-                      : "text-muted-foreground hover:bg-accent"
-                  }`}
-                >
-                  {route.label}
-                </Link>
-              ))}
+            <div className="container px-4 py-4 space-y-1 flex flex-col items-center">
+              <Link
+                to="/"
+                className={`block px-3 py-2 rounded-md w-full text-center ${
+                  location.pathname === "/"
+                    ? "bg-primary/10 font-medium text-foreground"
+                    : "text-muted-foreground hover:bg-accent"
+                }`}
+              >
+                Home
+              </Link>
+              <Link
+                to="/mbti"
+                className={`block px-3 py-2 rounded-md w-full text-center ${
+                  location.pathname === "/mbti"
+                    ? "bg-primary/10 font-medium text-foreground"
+                    : "text-muted-foreground hover:bg-accent"
+                }`}
+              >
+                MBTI Test
+              </Link>
+              <Link
+                to="/chat"
+                className={`block px-3 py-2 rounded-md w-full text-center ${
+                  location.pathname === "/chat"
+                    ? "bg-primary/10 font-medium text-foreground"
+                    : "text-muted-foreground hover:bg-accent"
+                }`}
+              >
+                Chat
+              </Link>
             </div>
           </motion.div>
         )}

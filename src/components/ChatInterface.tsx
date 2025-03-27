@@ -1,7 +1,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Bot, RotateCcw, Loader2, PencilLine, X, MessageSquare } from 'lucide-react';
+import { Send, Bot, RotateCcw, Loader2, PencilLine, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar } from '@/components/ui/avatar';
@@ -210,7 +210,7 @@ const ChatInterface = ({ className = "", initialQuestion, mbtiType }: ChatInterf
     <div className="flex flex-col w-full h-full overflow-hidden">
       {/* Chat messages area */}
       <div 
-        className="flex-1 overflow-y-auto scrollbar-thin p-0 bg-white dark:bg-gray-900" 
+        className="flex-1 overflow-y-auto p-0 bg-background" 
         ref={messagesContainerRef}
       >
         <div className="max-w-3xl mx-auto px-4 pb-32 pt-4">
@@ -223,129 +223,94 @@ const ChatInterface = ({ className = "", initialQuestion, mbtiType }: ChatInterf
                 animate="animate"
                 exit="exit"
                 variants={chatMessageAnimation}
-                className="mb-6"
+                className={`mb-6 ${message.role === 'user' ? 'flex justify-end' : ''}`}
               >
-                <div className="flex gap-3 items-start group">
-                  {message.role === 'assistant' ? (
-                    <Avatar className="w-8 h-8 mt-1 bg-blue-500 text-white flex items-center justify-center">
-                      <Bot className="w-4 h-4" />
-                    </Avatar>
-                  ) : (
-                    <Avatar className="w-8 h-8 mt-1 bg-gray-300 dark:bg-gray-700 text-gray-700 dark:text-gray-300 flex items-center justify-center">
-                      <span className="text-xs">U</span>
-                    </Avatar>
-                  )}
-                  
-                  <div className="flex-1 overflow-hidden">
-                    {editingMessageId === message.id ? (
-                      <div className="space-y-2">
-                        <Textarea
-                          value={editedContent}
-                          onChange={(e) => setEditedContent(e.target.value)}
-                          className="min-h-[100px] bg-background/80 text-foreground border-blue-200 focus-visible:ring-blue-400"
-                          placeholder="Edit your message..."
-                        />
-                        <div className="flex justify-end gap-2">
-                          <Button 
-                            size="sm" 
-                            variant="outline" 
-                            onClick={cancelEditing}
-                            className="text-gray-500"
-                          >
-                            <X className="w-3 h-3 mr-1" /> Cancel
-                          </Button>
-                          <Button 
-                            size="sm" 
-                            onClick={() => saveEdit(message.id)}
-                            className="bg-blue-500 hover:bg-blue-600"
-                          >
-                            Save
-                          </Button>
-                        </div>
-                      </div>
-                    ) : (
-                      <div>
-                        {message.role === 'assistant' ? (
-                          <ReactMarkdown
-                            remarkPlugins={[remarkGfm]}
-                            components={{
-                              p: ({ node, ...props }) => (
-                                <p className="text-sm whitespace-pre-wrap mb-4" {...props} />
-                              ),
-                              a: ({ node, ...props }) => (
-                                <a className="text-blue-500 hover:underline" {...props} target="_blank" rel="noopener noreferrer" />
-                              ),
-                              ul: ({ node, ...props }) => (
-                                <ul className="list-disc pl-5 my-2" {...props} />
-                              ),
-                              ol: ({ node, ...props }) => (
-                                <ol className="list-decimal pl-5 my-2" {...props} />
-                              ),
-                              li: ({ node, ...props }) => (
-                                <li className="my-1" {...props} />
-                              ),
-                              h1: ({ node, ...props }) => (
-                                <h1 className="text-lg font-bold my-3" {...props} />
-                              ),
-                              h2: ({ node, ...props }) => (
-                                <h2 className="text-md font-bold my-2" {...props} />
-                              ),
-                              h3: ({ node, ...props }) => (
-                                <h3 className="text-sm font-bold my-2" {...props} />
-                              ),
-                              code: ({ node, className, children, ...props }: any) => {
-                                const match = /language-(\w+)/.exec(className || '');
-                                const isInline = !className;
-                                return isInline ? (
-                                  <code className="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-xs" {...props}>
-                                    {children}
-                                  </code>
-                                ) : (
-                                  <code className="block bg-gray-100 dark:bg-gray-800 p-2 my-2 rounded overflow-x-auto text-xs" {...props}>
-                                    {children}
-                                  </code>
-                                );
-                              },
-                              pre: ({ node, ...props }) => (
-                                <pre className="bg-gray-100 dark:bg-gray-800 p-2 my-2 rounded overflow-x-auto text-xs" {...props} />
-                              ),
-                              blockquote: ({ node, ...props }) => (
-                                <blockquote className="border-l-4 border-blue-300 dark:border-blue-700 pl-4 my-2 italic text-gray-600 dark:text-gray-400" {...props} />
-                              ),
-                            }}
-                          >
-                            {message.content}
-                          </ReactMarkdown>
-                        ) : (
-                          <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                  
-                  {!editingMessageId && message.role === 'user' && (
-                    <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+                {message.role === 'user' ? (
+                  // User message - right-aligned with background
+                  <div className="max-w-[85%] md:max-w-[75%] bg-primary/10 p-4 rounded-lg text-foreground">
+                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                    <div className="flex justify-end gap-2 mt-2 opacity-0 hover:opacity-100 transition-opacity">
                       <Button 
                         variant="ghost" 
                         size="icon" 
-                        className="h-7 w-7 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800"
+                        className="h-6 w-6 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800"
                         onClick={() => startEditing(message)}
                       >
-                        <PencilLine className="h-3.5 w-3.5 text-gray-500" />
+                        <PencilLine className="h-3 w-3 text-muted-foreground" />
                         <span className="sr-only">Edit message</span>
                       </Button>
                       <Button 
                         variant="ghost" 
                         size="icon" 
-                        className="h-7 w-7 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800"
+                        className="h-6 w-6 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800"
                         onClick={() => resendMessage(message)}
                       >
-                        <MessageSquare className="h-3.5 w-3.5 text-gray-500" />
+                        <MessageSquare className="h-3 w-3 text-muted-foreground" />
                         <span className="sr-only">Reuse message</span>
                       </Button>
                     </div>
-                  )}
-                </div>
+                  </div>
+                ) : (
+                  // Assistant message - full width
+                  <div className="flex gap-3 items-start w-full">
+                    <Avatar className="w-8 h-8 mt-1 bg-primary/80 text-primary-foreground flex items-center justify-center">
+                      <Bot className="w-4 h-4" />
+                    </Avatar>
+                    
+                    <div className="flex-1 overflow-hidden">
+                      <ReactMarkdown
+                        remarkPlugins={[remarkGfm]}
+                        components={{
+                          p: ({ node, ...props }) => (
+                            <p className="text-sm whitespace-pre-wrap mb-4" {...props} />
+                          ),
+                          a: ({ node, ...props }) => (
+                            <a className="text-primary hover:underline" {...props} target="_blank" rel="noopener noreferrer" />
+                          ),
+                          ul: ({ node, ...props }) => (
+                            <ul className="list-disc pl-5 my-2" {...props} />
+                          ),
+                          ol: ({ node, ...props }) => (
+                            <ol className="list-decimal pl-5 my-2" {...props} />
+                          ),
+                          li: ({ node, ...props }) => (
+                            <li className="my-1" {...props} />
+                          ),
+                          h1: ({ node, ...props }) => (
+                            <h1 className="text-lg font-bold my-3" {...props} />
+                          ),
+                          h2: ({ node, ...props }) => (
+                            <h2 className="text-md font-bold my-2" {...props} />
+                          ),
+                          h3: ({ node, ...props }) => (
+                            <h3 className="text-sm font-bold my-2" {...props} />
+                          ),
+                          code: ({ node, className, children, ...props }: any) => {
+                            const match = /language-(\w+)/.exec(className || '');
+                            const isInline = !className;
+                            return isInline ? (
+                              <code className="bg-muted px-1 py-0.5 rounded text-xs" {...props}>
+                                {children}
+                              </code>
+                            ) : (
+                              <code className="block bg-muted p-2 my-2 rounded overflow-x-auto text-xs" {...props}>
+                                {children}
+                              </code>
+                            );
+                          },
+                          pre: ({ node, ...props }) => (
+                            <pre className="bg-muted p-2 my-2 rounded overflow-x-auto text-xs" {...props} />
+                          ),
+                          blockquote: ({ node, ...props }) => (
+                            <blockquote className="border-l-4 border-primary/30 pl-4 my-2 italic text-muted-foreground" {...props} />
+                          ),
+                        }}
+                      >
+                        {message.content}
+                      </ReactMarkdown>
+                    </div>
+                  </div>
+                )}
               </motion.div>
             ))}
           </AnimatePresence>
@@ -357,17 +322,17 @@ const ChatInterface = ({ className = "", initialQuestion, mbtiType }: ChatInterf
               className="mb-6"
             >
               <div className="flex gap-3 items-start">
-                <Avatar className="w-8 h-8 mt-1 bg-blue-500 text-white flex items-center justify-center">
+                <Avatar className="w-8 h-8 mt-1 bg-primary/80 text-primary-foreground flex items-center justify-center">
                   <Bot className="w-4 h-4" />
                 </Avatar>
                 <div className="p-2">
                   <div className="flex items-center gap-2">
                     <div className="flex items-center gap-1">
-                      <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" />
-                      <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce [animation-delay:0.2s]" />
-                      <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce [animation-delay:0.4s]" />
+                      <div className="w-1.5 h-1.5 bg-muted-foreground rounded-full animate-bounce" />
+                      <div className="w-1.5 h-1.5 bg-muted-foreground rounded-full animate-bounce [animation-delay:0.2s]" />
+                      <div className="w-1.5 h-1.5 bg-muted-foreground rounded-full animate-bounce [animation-delay:0.4s]" />
                     </div>
-                    <span className="text-xs text-gray-500">
+                    <span className="text-xs text-muted-foreground">
                       Thinking...
                     </span>
                   </div>
@@ -381,13 +346,13 @@ const ChatInterface = ({ className = "", initialQuestion, mbtiType }: ChatInterf
       </div>
       
       {/* Chat input area - fixed at bottom */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t py-3 px-4 md:px-0">
+      <div className="fixed bottom-0 left-0 right-0 bg-background border-t py-3 px-4 md:px-0">
         <div className="max-w-3xl mx-auto flex items-center">
           <Button
             variant="outline"
             size="icon"
             onClick={handleReset}
-            className="mr-2 h-9 w-9 rounded-full border-gray-300 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 hidden md:flex"
+            className="mr-2 h-9 w-9 rounded-full border-muted-foreground/30 hover:bg-muted transition-colors"
             title="Start new chat"
           >
             <RotateCcw className="h-4 w-4" />
@@ -404,7 +369,7 @@ const ChatInterface = ({ className = "", initialQuestion, mbtiType }: ChatInterf
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               placeholder="Message Career Assistant..."
-              className="resize-none min-h-[40px] max-h-[120px] text-sm pr-10 border-gray-300 focus-visible:ring-blue-500 rounded-lg"
+              className="resize-none min-h-[40px] max-h-[120px] text-sm pr-10 rounded-lg"
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();
@@ -417,8 +382,8 @@ const ChatInterface = ({ className = "", initialQuestion, mbtiType }: ChatInterf
               size="icon" 
               className={`absolute right-1.5 bottom-1 h-8 w-8 rounded-md ${
                 !inputValue.trim() || isLoading 
-                  ? 'bg-gray-300 text-gray-600 hover:bg-gray-300 cursor-not-allowed' 
-                  : 'bg-blue-500 hover:bg-blue-600 text-white'
+                  ? 'bg-muted text-muted-foreground hover:bg-muted cursor-not-allowed' 
+                  : 'bg-primary hover:bg-primary/90 text-primary-foreground'
               }`}
               disabled={!inputValue.trim() || isLoading}
             >

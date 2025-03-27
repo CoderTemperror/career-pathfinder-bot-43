@@ -6,6 +6,8 @@ import SuggestedPromptsSidebar from '@/components/SuggestedPromptsSidebar';
 import { useSearchParams } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { getSuggestedPrompts } from '@/utils/mbtiCalculator';
+import { MenuIcon } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 const Chat = () => {
   const [searchParams] = useSearchParams();
@@ -13,12 +15,12 @@ const Chat = () => {
   const mbtiType = searchParams.get('mbti') || undefined;
   const [currentPrompt, setCurrentPrompt] = useState<string>(initialQuestion || '');
   const [mbtiPrompts, setMbtiPrompts] = useState<string[]>([]);
-  const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth >= 768);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   
   useEffect(() => {
     // If MBTI type is provided, get customized prompts
     if (mbtiType) {
-      const prompts = getSuggestedPrompts(mbtiType);
+      const prompts = getSuggestedPrompts(mbtiType || 'general');
       setMbtiPrompts(prompts);
     }
   }, [mbtiType]);
@@ -57,28 +59,41 @@ const Chat = () => {
   return (
     <TransitionLayout>
       <Navbar />
-      <div className="flex min-h-screen pt-20 pb-0 max-h-screen overflow-hidden">
+      <div className="flex min-h-screen max-h-screen overflow-hidden">
         {/* Sidebar for suggested prompts */}
         <SuggestedPromptsSidebar 
           onSelectPrompt={handleSelectPrompt}
           isOpen={sidebarOpen}
           onToggle={toggleSidebar}
-          className="hidden md:block"
         />
         
-        {/* Chat content - take up full width when sidebar is closed */}
-        <div className={`flex-1 transition-all duration-300 flex flex-col ${sidebarOpen ? 'md:ml-[320px]' : ''}`}>
-          <div className="px-4 py-4 border-b bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30">
-            <h1 className="text-xl md:text-2xl font-display font-bold tracking-tight text-center">
-              Chat with Your Career Assistant
-            </h1>
-            {mbtiType && (
-              <div className="flex justify-center mt-2">
-                <div className="inline-flex items-center bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300 px-3 py-1 rounded-full text-sm font-medium">
-                  MBTI: {mbtiType}
-                </div>
+        {/* Chat content */}
+        <div className="flex-1 flex flex-col pt-20 pb-0 relative">
+          <div className="px-4 py-4 border-b bg-gradient-to-r from-background to-background/80">
+            <div className="max-w-3xl mx-auto flex items-center">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={toggleSidebar}
+                className="mr-3 h-8 w-8 flex-shrink-0"
+                aria-label="Toggle sidebar"
+              >
+                <MenuIcon className="h-5 w-5" />
+              </Button>
+              
+              <div className="flex-1">
+                <h1 className="text-xl md:text-2xl font-display font-bold tracking-tight text-center">
+                  Chat with Your Career Assistant
+                </h1>
+                {mbtiType && (
+                  <div className="flex justify-center mt-2">
+                    <div className="inline-flex items-center bg-primary/10 text-primary-foreground px-3 py-1 rounded-full text-sm font-medium">
+                      MBTI: {mbtiType}
+                    </div>
+                  </div>
+                )}
               </div>
-            )}
+            </div>
           </div>
           
           <div className="flex-1 overflow-hidden p-0">

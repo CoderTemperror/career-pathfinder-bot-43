@@ -1,21 +1,8 @@
 
-import { useState } from "react";
+import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { 
-  BookOpen, 
-  GraduationCap, 
-  Briefcase, 
-  Globe, 
-  Lightbulb, 
-  School, 
-  Compass,
-  Award,
-  Target,
-  TrendingUp,
-  MenuIcon,
-  X
-} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { BookOpen, GraduationCap, Briefcase, Lightbulb, School, Compass, Target } from "lucide-react";
 
 interface SuggestedPromptsSidebarProps {
   onSelectPrompt: (prompt: string) => void;
@@ -80,31 +67,17 @@ const promptCategories = [
   },
 ];
 
-const SuggestedPromptsSidebar = ({ onSelectPrompt, isOpen, onToggle, className = "" }: SuggestedPromptsSidebarProps) => {
+const SuggestedPromptsSidebar = ({ onSelectPrompt, isOpen, onToggle }: SuggestedPromptsSidebarProps) => {
   return (
     <>
-      {/* Mobile sidebar toggle button */}
-      <Button
-        variant="outline"
-        size="icon"
-        onClick={onToggle}
-        className="fixed left-4 top-20 z-50 md:hidden bg-background border-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20"
-      >
-        {isOpen ? (
-          <X className="h-4 w-4 text-blue-500" />
-        ) : (
-          <MenuIcon className="h-4 w-4 text-blue-500" />
-        )}
-      </Button>
-
-      {/* Sidebar overlay on mobile */}
+      {/* Sidebar overlay */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-background/80 backdrop-blur-sm z-40 md:hidden"
+            className="fixed inset-0 bg-background/80 backdrop-blur-sm z-40 md:bg-transparent md:backdrop-blur-none"
             onClick={onToggle}
           />
         )}
@@ -115,25 +88,35 @@ const SuggestedPromptsSidebar = ({ onSelectPrompt, isOpen, onToggle, className =
         initial={{ x: "-100%" }}
         animate={{ x: isOpen ? 0 : "-100%" }}
         transition={{ type: "spring", damping: 25, stiffness: 300 }}
-        className={`fixed top-0 left-0 z-40 h-full w-[280px] md:w-[320px] bg-background border-r overflow-y-auto pt-20 pb-6 px-4 md:translate-x-0 ${className}`}
+        className="fixed top-0 left-0 z-40 h-full w-[320px] bg-background border-r overflow-y-auto pt-20 pb-6 px-4"
       >
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-lg font-semibold flex items-center text-primary">
+            <Compass className="mr-2 h-5 w-5" />
+            Suggested Prompts
+          </h2>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={onToggle}
+            className="h-8 w-8"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+        
         <div className="space-y-6">
           <div>
-            <h2 className="text-lg font-semibold mb-4 flex items-center text-blue-500">
-              <Compass className="mr-2 h-5 w-5" />
-              Career Streams After 12th
-            </h2>
+            <h3 className="text-base font-medium mb-3 text-foreground">Career Streams After 12th</h3>
             <div className="grid grid-cols-1 gap-2">
               {careerStreams.map((stream, index) => (
                 <Button
                   key={index}
                   variant="outline"
-                  className="justify-start h-auto py-3 px-4 text-left border-blue-200 hover:border-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all"
+                  className="justify-start h-auto py-3 px-4 text-left border-primary/20 hover:border-primary/40 hover:bg-primary/5 transition-all"
                   onClick={() => {
                     onSelectPrompt(stream.prompt);
-                    if (window.innerWidth < 768) {
-                      onToggle();
-                    }
+                    onToggle();
                   }}
                 >
                   {stream.icon}
@@ -148,27 +131,20 @@ const SuggestedPromptsSidebar = ({ onSelectPrompt, isOpen, onToggle, className =
 
           {promptCategories.map((category, categoryIndex) => (
             <div key={categoryIndex}>
-              <h2 className="text-lg font-semibold mb-3 flex items-center text-indigo-500">
-                {categoryIndex === 0 && <Briefcase className="mr-2 h-5 w-5" />}
-                {categoryIndex === 1 && <School className="mr-2 h-5 w-5" />}
-                {categoryIndex === 2 && <Award className="mr-2 h-5 w-5" />}
-                {category.title}
-              </h2>
+              <h3 className="text-base font-medium mb-2 text-foreground">{category.title}</h3>
               <div className="grid grid-cols-1 gap-1.5">
                 {category.prompts.map((prompt, promptIndex) => (
                   <Button
                     key={promptIndex}
                     variant="ghost"
-                    className="justify-start h-auto py-2 text-left hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-all"
+                    className="justify-start h-auto py-2 text-left text-sm hover:bg-primary/5 transition-all"
                     onClick={() => {
                       onSelectPrompt(prompt);
-                      if (window.innerWidth < 768) {
-                        onToggle();
-                      }
+                      onToggle();
                     }}
                   >
-                    <TrendingUp className="h-3 w-3 mr-2 text-indigo-400" />
-                    {prompt}
+                    <Target className="h-3 w-3 mr-2 text-primary/70" />
+                    <span className="line-clamp-2">{prompt}</span>
                   </Button>
                 ))}
               </div>
