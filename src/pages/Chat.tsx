@@ -1,4 +1,3 @@
-
 import TransitionLayout from '@/components/TransitionLayout';
 import Navbar from '@/components/Navbar';
 import ChatInterface from '@/components/ChatInterface';
@@ -18,7 +17,6 @@ const Chat = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   
   useEffect(() => {
-    // If MBTI type is provided, get customized prompts
     if (mbtiType) {
       const prompts = getSuggestedPrompts(mbtiType || 'general');
       setMbtiPrompts(prompts);
@@ -28,18 +26,15 @@ const Chat = () => {
   const handleSelectPrompt = (prompt: string) => {
     setCurrentPrompt(prompt);
     
-    // Add a small delay to ensure the state is updated
     setTimeout(() => {
       const textareaElement = document.querySelector('textarea');
       if (textareaElement) {
         textareaElement.value = prompt;
         textareaElement.focus();
         
-        // Dispatch input event
         const event = new Event('input', { bubbles: true });
         textareaElement.dispatchEvent(event);
         
-        // Simulate Enter keypress to submit
         setTimeout(() => {
           const enterEvent = new KeyboardEvent('keydown', {
             key: 'Enter',
@@ -60,9 +55,8 @@ const Chat = () => {
     <TransitionLayout>
       <Navbar />
       <div className="flex h-screen w-full pt-[72px] overflow-hidden">
-        {/* Full width chat content */}
         <div className="flex-1 flex flex-col overflow-hidden relative w-full">
-          <div className="px-4 py-3 border-b bg-background sticky top-0 z-10">
+          <div className="px-4 py-3 border-b bg-background sticky top-0 z-10 hover-shadow">
             <div className="max-w-5xl mx-auto flex items-center">
               <Button
                 variant="ghost"
@@ -87,7 +81,6 @@ const Chat = () => {
                 )}
               </div>
               
-              {/* Add an empty div to balance the header */}
               <div className="h-8 w-8"></div>
             </div>
           </div>
@@ -97,7 +90,6 @@ const Chat = () => {
           </div>
         </div>
 
-        {/* Sidebar for suggested prompts - now as an overlay */}
         <SuggestedPromptsSidebar 
           onSelectPrompt={handleSelectPrompt}
           isOpen={sidebarOpen}

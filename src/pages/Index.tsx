@@ -1,4 +1,3 @@
-
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import TransitionLayout from '@/components/TransitionLayout';
@@ -52,8 +51,7 @@ const Index = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              whileHover={{ y: -5, boxShadow: "0 10px 25px rgba(0, 0, 0, 0.15)" }}
-              className="bg-card rounded-xl p-6 shadow-sm border transition-all duration-300 hover:shadow-xl"
+              className="bg-card rounded-xl p-6 border hover-shadow"
             >
               <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
                 <Brain className="h-6 w-6 text-primary" />
@@ -68,8 +66,7 @@ const Index = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              whileHover={{ y: -5, boxShadow: "0 10px 25px rgba(0, 0, 0, 0.15)" }}
-              className="bg-card rounded-xl p-6 shadow-sm border transition-all duration-300 hover:shadow-xl"
+              className="bg-card rounded-xl p-6 border hover-shadow"
             >
               <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
                 <MessageSquare className="h-6 w-6 text-primary" />
@@ -82,7 +79,7 @@ const Index = () => {
             </motion.div>
           </div>
 
-          <div className="bg-card rounded-xl p-8 border mb-16 transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+          <div className="bg-card rounded-xl p-8 border mb-16 hover-shadow">
             <div className="flex items-center mb-6">
               <Sparkles className="h-5 w-5 text-primary mr-2" />
               <h2 className="text-2xl font-semibold">AI-Powered Career Guidance</h2>
