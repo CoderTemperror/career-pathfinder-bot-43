@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Send, Bot, RotateCcw, Loader2, PencilLine, MessageSquare } from 'lucide-react';
@@ -10,7 +11,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { toast } from 'sonner';
 import GeminiService from '@/services/gemini';
 import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-markdown';
+import remarkGfm from 'remark-gfm'; // Fixed import path
 import { useIsMobile } from '@/hooks/use-mobile';
 import storageService from '@/services/storage';
 
@@ -50,7 +51,7 @@ const ChatInterface = ({ className = "", initialQuestion, mbtiType }: ChatInterf
       // Set default welcome message if no history exists
       setMessages([{
         id: '1',
-        role: 'assistant',
+        role: 'assistant' as 'assistant', // Type assertion
         content: defaultWelcomeMessage,
         timestamp: new Date(),
       }]);
@@ -145,7 +146,7 @@ const ChatInterface = ({ className = "", initialQuestion, mbtiType }: ChatInterf
     
     const userMessage: ChatMessage = {
       id: uuidv4(),
-      role: 'user',
+      role: 'user' as 'user', // Type assertion
       content: inputValue,
       timestamp: new Date(),
     };
@@ -159,7 +160,7 @@ const ChatInterface = ({ className = "", initialQuestion, mbtiType }: ChatInterf
       
       const aiMessage: ChatMessage = {
         id: uuidv4(),
-        role: 'assistant',
+        role: 'assistant' as 'assistant', // Type assertion
         content: aiResponseText,
         timestamp: new Date(),
       };
@@ -172,7 +173,7 @@ const ChatInterface = ({ className = "", initialQuestion, mbtiType }: ChatInterf
       
       const errorMessage: ChatMessage = {
         id: uuidv4(),
-        role: 'assistant', // Explicitly typed as 'assistant'
+        role: 'assistant' as 'assistant', // Type assertion
         content: "I'm sorry, I'm having trouble responding right now. Please try again later.",
         timestamp: new Date(),
       };
@@ -184,9 +185,9 @@ const ChatInterface = ({ className = "", initialQuestion, mbtiType }: ChatInterf
   };
 
   const handleReset = () => {
-    const newWelcomeMessage = {
+    const newWelcomeMessage: ChatMessage = {
       id: uuidv4(),
-      role: 'assistant',
+      role: 'assistant' as 'assistant', // Type assertion
       content: defaultWelcomeMessage,
       timestamp: new Date(),
     };
