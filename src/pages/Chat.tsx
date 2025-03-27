@@ -69,7 +69,7 @@ const Chat = () => {
         
         {/* Chat content */}
         <div className="flex-1 flex flex-col overflow-hidden">
-          <div className="px-4 py-3 border-b bg-gradient-to-r from-background to-background/80 sticky top-0 z-10">
+          <div className="px-4 py-3 border-b bg-background sticky top-0 z-10">
             <div className="max-w-3xl mx-auto flex items-center">
               <Button
                 variant="ghost"
@@ -93,6 +93,9 @@ const Chat = () => {
                   </div>
                 )}
               </div>
+              
+              {/* Add an empty div to balance the header */}
+              <div className="h-8 w-8"></div>
             </div>
           </div>
           

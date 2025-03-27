@@ -212,6 +212,7 @@ const ChatInterface = ({ className = "", initialQuestion, mbtiType }: ChatInterf
       <div 
         className="flex-1 overflow-y-auto scrollbar-thin bg-background" 
         ref={messagesContainerRef}
+        tabIndex={-1}
       >
         <div className="max-w-3xl mx-auto px-4 pb-28 pt-4">
           <AnimatePresence initial={false}>
@@ -223,25 +224,25 @@ const ChatInterface = ({ className = "", initialQuestion, mbtiType }: ChatInterf
                 animate="animate"
                 exit="exit"
                 variants={chatMessageAnimation}
-                className={`mb-6 ${message.role === 'user' ? 'ml-auto max-w-[80%]' : 'mr-auto max-w-full'}`}
+                className={`${message.role === 'user' ? 'flex justify-end' : 'flex justify-start'} mb-6`}
               >
                 {message.role === 'user' ? (
-                  // User message - right-aligned with minimal background
-                  <div className="flex justify-end">
-                    <div className="bg-primary/10 py-2 px-3 rounded-lg text-foreground">
+                  // User message - right-aligned with bubble background
+                  <div className="max-w-[80%]">
+                    <div className="bg-blue-500 dark:bg-blue-600 text-white py-2.5 px-4 rounded-2xl rounded-tr-none">
                       {editingMessageId === message.id ? (
                         <div className="min-w-[150px]">
                           <Textarea
                             value={editedContent}
                             onChange={(e) => setEditedContent(e.target.value)}
-                            className="mb-2 min-h-[60px] text-sm"
+                            className="mb-2 min-h-[60px] text-sm bg-blue-600 border-blue-400 text-white placeholder:text-blue-200"
                             autoFocus
                           />
                           <div className="flex justify-end gap-2">
-                            <Button variant="ghost" size="sm" onClick={cancelEditing}>
+                            <Button variant="ghost" size="sm" onClick={cancelEditing} className="text-white hover:bg-blue-700">
                               Cancel
                             </Button>
-                            <Button size="sm" onClick={() => saveEdit(message.id)}>
+                            <Button size="sm" onClick={() => saveEdit(message.id)} className="bg-white text-blue-600 hover:bg-blue-100">
                               Save
                             </Button>
                           </div>
@@ -249,25 +250,25 @@ const ChatInterface = ({ className = "", initialQuestion, mbtiType }: ChatInterf
                       ) : (
                         <div>
                           <p className="text-sm whitespace-pre-wrap break-words">{message.content}</p>
-                          <div className="flex justify-end gap-2 mt-1">
+                          <div className="flex justify-end gap-2 mt-1 opacity-0 hover:opacity-100 transition-opacity">
                             <Button 
                               variant="ghost" 
                               size="icon" 
-                              className="h-5 w-5 rounded-full opacity-0 hover:opacity-100 focus:opacity-100 hover:bg-background/80"
+                              className="h-5 w-5 rounded-full hover:bg-blue-600"
                               onClick={() => startEditing(message)}
                               tabIndex={-1}
                             >
-                              <PencilLine className="h-3 w-3 text-muted-foreground" />
+                              <PencilLine className="h-3 w-3 text-white" />
                               <span className="sr-only">Edit message</span>
                             </Button>
                             <Button 
                               variant="ghost" 
                               size="icon" 
-                              className="h-5 w-5 rounded-full opacity-0 hover:opacity-100 focus:opacity-100 hover:bg-background/80"
+                              className="h-5 w-5 rounded-full hover:bg-blue-600"
                               onClick={() => resendMessage(message)}
                               tabIndex={-1}
                             >
-                              <MessageSquare className="h-3 w-3 text-muted-foreground" />
+                              <MessageSquare className="h-3 w-3 text-white" />
                               <span className="sr-only">Reuse message</span>
                             </Button>
                           </div>
@@ -277,12 +278,12 @@ const ChatInterface = ({ className = "", initialQuestion, mbtiType }: ChatInterf
                   </div>
                 ) : (
                   // Assistant message - left-aligned with avatar
-                  <div className="flex gap-3 items-start">
-                    <Avatar className="w-8 h-8 mt-1 bg-primary/80 text-primary-foreground flex items-center justify-center">
+                  <div className="flex gap-3 items-start max-w-[90%]">
+                    <Avatar className="w-8 h-8 mt-1 bg-neutral-200 dark:bg-neutral-700 text-foreground flex items-center justify-center">
                       <Bot className="w-4 h-4" />
                     </Avatar>
                     
-                    <div className="flex-1 overflow-hidden">
+                    <div className="overflow-hidden">
                       <ReactMarkdown
                         remarkPlugins={[remarkGfm]}
                         components={{
@@ -290,7 +291,7 @@ const ChatInterface = ({ className = "", initialQuestion, mbtiType }: ChatInterf
                             <p className="text-sm whitespace-pre-wrap mb-4" {...props} />
                           ),
                           a: ({ node, ...props }) => (
-                            <a className="text-primary hover:underline" {...props} target="_blank" rel="noopener noreferrer" />
+                            <a className="text-blue-500 dark:text-blue-400 hover:underline" {...props} target="_blank" rel="noopener noreferrer" />
                           ),
                           ul: ({ node, ...props }) => (
                             <ul className="list-disc pl-5 my-2" {...props} />
@@ -327,7 +328,7 @@ const ChatInterface = ({ className = "", initialQuestion, mbtiType }: ChatInterf
                             <pre className="bg-muted p-2 my-2 rounded overflow-x-auto text-xs" {...props} />
                           ),
                           blockquote: ({ node, ...props }) => (
-                            <blockquote className="border-l-4 border-primary/30 pl-4 my-2 italic text-muted-foreground" {...props} />
+                            <blockquote className="border-l-4 border-blue-300 dark:border-blue-600 pl-4 my-2 italic text-muted-foreground" {...props} />
                           ),
                         }}
                       >
@@ -347,7 +348,7 @@ const ChatInterface = ({ className = "", initialQuestion, mbtiType }: ChatInterf
               className="mb-6"
             >
               <div className="flex gap-3 items-start">
-                <Avatar className="w-8 h-8 mt-1 bg-primary/80 text-primary-foreground flex items-center justify-center">
+                <Avatar className="w-8 h-8 mt-1 bg-neutral-200 dark:bg-neutral-700 text-foreground flex items-center justify-center">
                   <Bot className="w-4 h-4" />
                 </Avatar>
                 <div className="p-2">
@@ -408,7 +409,7 @@ const ChatInterface = ({ className = "", initialQuestion, mbtiType }: ChatInterf
               className={`absolute right-1.5 bottom-1 h-8 w-8 rounded-md ${
                 !inputValue.trim() || isLoading 
                   ? 'bg-muted text-muted-foreground hover:bg-muted cursor-not-allowed' 
-                  : 'bg-primary hover:bg-primary/90 text-primary-foreground'
+                  : 'bg-blue-500 hover:bg-blue-600 text-white dark:bg-blue-600 dark:hover:bg-blue-700'
               }`}
               disabled={!inputValue.trim() || isLoading}
             >

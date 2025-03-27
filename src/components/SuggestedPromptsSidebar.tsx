@@ -88,12 +88,11 @@ const SuggestedPromptsSidebar = ({ onSelectPrompt, isOpen, onToggle }: Suggested
         initial={{ x: "-100%" }}
         animate={{ x: isOpen ? 0 : "-100%" }}
         transition={{ type: "spring", damping: 25, stiffness: 300 }}
-        className="fixed md:sticky top-0 left-0 z-40 h-full w-[300px] bg-background/95 backdrop-blur-sm border-r overflow-hidden flex flex-col"
-        style={{ height: "100vh", top: 0 }}
+        className="fixed md:sticky top-[72px] left-0 z-40 h-[calc(100vh-72px)] w-[280px] md:w-[320px] bg-background border-r overflow-hidden flex flex-col"
       >
-        <div className="pt-[72px] pb-6 px-4 flex-1 overflow-y-auto scrollbar-thin">
+        <div className="py-4 px-4 flex-1 overflow-y-auto scrollbar-thin">
           <div className="flex justify-between items-center mb-4 sticky top-0 pt-2 pb-2 bg-background/95 backdrop-blur-sm z-10">
-            <h2 className="text-lg font-semibold flex items-center text-primary">
+            <h2 className="text-lg font-semibold flex items-center text-blue-500 dark:text-blue-400">
               <Compass className="mr-2 h-5 w-5" />
               Suggested Prompts
             </h2>
@@ -139,7 +138,7 @@ const SuggestedPromptsSidebar = ({ onSelectPrompt, isOpen, onToggle }: Suggested
                     <Button
                       key={promptIndex}
                       variant="ghost"
-                      className="justify-start h-auto py-2 text-left text-sm hover:bg-primary/5 transition-all w-full whitespace-normal"
+                      className="justify-start h-auto py-2 text-left text-sm hover:bg-primary/5 transition-all w-full"
                       onClick={() => {
                         onSelectPrompt(prompt);
                         onToggle();

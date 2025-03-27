@@ -40,13 +40,13 @@ const Navbar = () => {
             className="font-display text-xl font-bold tracking-tight"
           >
             <div className="flex flex-col">
-              <span className="text-gradient-primary bg-gradient-to-r from-blue-500 to-indigo-500 bg-clip-text text-transparent">Career Compass</span>
+              <span className="text-blue-500 dark:text-blue-400">Career Compass</span>
               <span className="text-xs text-muted-foreground -mt-1">SBH 2025 Junior</span>
             </div>
           </Link>
 
-          <div className="flex items-center gap-2">
-            <div className="hidden md:flex items-center space-x-1">
+          <div className="flex items-center space-x-4">
+            <div className="hidden md:flex items-center space-x-6">
               <Link
                 to="/"
                 className={`px-3 py-1.5 rounded-md text-sm transition-colors ${
