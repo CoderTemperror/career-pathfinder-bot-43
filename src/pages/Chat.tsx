@@ -2,50 +2,90 @@
 import TransitionLayout from '@/components/TransitionLayout';
 import Navbar from '@/components/Navbar';
 import ChatInterface from '@/components/ChatInterface';
-import SuggestedPrompts from '@/components/SuggestedPrompts';
+import SuggestedPromptsSidebar from '@/components/SuggestedPromptsSidebar';
 import { useSearchParams } from 'react-router-dom';
-import { Toaster } from '@/components/ui/toaster';
-import { Sparkles } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { getSuggestedPrompts } from '@/utils/mbtiCalculator';
 
 const Chat = () => {
   const [searchParams] = useSearchParams();
   const initialQuestion = searchParams.get('question') || undefined;
+  const mbtiType = searchParams.get('mbti') || undefined;
   const [currentPrompt, setCurrentPrompt] = useState<string>(initialQuestion || '');
+  const [mbtiPrompts, setMbtiPrompts] = useState<string[]>([]);
+  const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth >= 768);
+  
+  useEffect(() => {
+    // If MBTI type is provided, get customized prompts
+    if (mbtiType) {
+      const prompts = getSuggestedPrompts(mbtiType);
+      setMbtiPrompts(prompts);
+    }
+  }, [mbtiType]);
   
   const handleSelectPrompt = (prompt: string) => {
     setCurrentPrompt(prompt);
+    
+    // Add a small delay to ensure the state is updated
+    setTimeout(() => {
+      const textareaElement = document.querySelector('textarea');
+      if (textareaElement) {
+        textareaElement.value = prompt;
+        textareaElement.focus();
+        
+        // Dispatch input event
+        const event = new Event('input', { bubbles: true });
+        textareaElement.dispatchEvent(event);
+        
+        // Simulate Enter keypress to submit
+        setTimeout(() => {
+          const enterEvent = new KeyboardEvent('keydown', {
+            key: 'Enter',
+            code: 'Enter',
+            bubbles: true
+          });
+          textareaElement.dispatchEvent(enterEvent);
+        }, 50);
+      }
+    }, 100);
+  };
+  
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
   };
   
   return (
     <TransitionLayout>
       <Navbar />
-      <div className="min-h-screen pt-24 pb-12 px-6">
-        <div className="max-w-4xl mx-auto space-y-6">
-          <div className="text-center mb-10">
-            <h1 className="text-3xl md:text-4xl font-display font-bold tracking-tight mb-4">
+      <div className="flex min-h-screen pt-20 pb-0 max-h-screen overflow-hidden">
+        {/* Sidebar for suggested prompts */}
+        <SuggestedPromptsSidebar 
+          onSelectPrompt={handleSelectPrompt}
+          isOpen={sidebarOpen}
+          onToggle={toggleSidebar}
+          className="hidden md:block"
+        />
+        
+        {/* Chat content - take up full width when sidebar is closed */}
+        <div className={`flex-1 transition-all duration-300 flex flex-col ${sidebarOpen ? 'md:ml-[320px]' : ''}`}>
+          <div className="px-4 py-4 border-b bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30">
+            <h1 className="text-xl md:text-2xl font-display font-bold tracking-tight text-center">
               Chat with Your Career Assistant
             </h1>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-4">
-              Ask questions about careers, required qualifications, job outlook, or any other career-related topics.
-            </p>
-            
-            <div className="flex justify-center items-center mt-4 mb-2">
-              <div className="flex items-center bg-primary/10 p-3 rounded-lg mb-2">
-                <Sparkles className="h-5 w-5 text-primary mr-2" />
-                <p className="text-sm">
-                  Powered by Google Gemini 2.0 Flash (Free Tier)
-                </p>
+            {mbtiType && (
+              <div className="flex justify-center mt-2">
+                <div className="inline-flex items-center bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300 px-3 py-1 rounded-full text-sm font-medium">
+                  MBTI: {mbtiType}
+                </div>
               </div>
-            </div>
+            )}
           </div>
           
-          <SuggestedPrompts onSelectPrompt={handleSelectPrompt} />
-          
-          <ChatInterface initialQuestion={currentPrompt} />
+          <div className="flex-1 overflow-hidden p-0">
+            <ChatInterface initialQuestion={currentPrompt} mbtiType={mbtiType} />
+          </div>
         </div>
       </div>
-      <Toaster />
     </TransitionLayout>
   );
 };
