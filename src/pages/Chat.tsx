@@ -4,7 +4,6 @@ import Navbar from '@/components/Navbar';
 import ChatInterface from '@/components/ChatInterface';
 import SuggestedPrompts from '@/components/SuggestedPrompts';
 import { useSearchParams } from 'react-router-dom';
-import { Bot } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { getSuggestedPrompts } from '@/utils/mbtiCalculator';
 
@@ -30,71 +29,61 @@ const Chat = () => {
   return (
     <TransitionLayout>
       <Navbar />
-      <div className="min-h-screen pt-24 pb-12 px-6 max-h-screen overflow-hidden flex flex-col">
+      <div className="min-h-screen pt-20 pb-6 px-4 max-h-screen overflow-hidden flex flex-col">
         <div className="max-w-5xl mx-auto w-full flex-1 flex flex-col">
-          <div className="text-center mb-6">
-            <h1 className="text-2xl md:text-3xl font-display font-bold tracking-tight mb-2">
+          <div className="text-center mb-4">
+            <h1 className="text-xl md:text-2xl font-display font-bold tracking-tight">
               Chat with Your Career Assistant
             </h1>
-            <div className="flex flex-wrap justify-center items-center gap-3 mb-2">
-              <div className="inline-flex items-center bg-primary/10 px-3 py-1.5 rounded-full text-sm">
-                <Bot className="h-4 w-4 text-primary mr-1.5" />
-                AI-powered guidance
+            {mbtiType && (
+              <div className="inline-flex items-center bg-secondary/80 px-3 py-1 mt-2 rounded-full text-sm font-medium">
+                MBTI: {mbtiType}
               </div>
-              
-              {mbtiType && (
-                <div className="inline-flex items-center bg-secondary px-3 py-1.5 rounded-full text-sm font-medium">
-                  MBTI: {mbtiType}
-                </div>
-              )}
-            </div>
+            )}
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 flex-1 overflow-hidden">
-            <div className="col-span-1 md:pr-4 overflow-y-auto max-h-[30vh] md:max-h-full">
-              {mbtiType && mbtiPrompts.length > 0 ? (
-                <div className="mb-4">
-                  <h2 className="text-sm font-semibold mb-2 text-muted-foreground">SUGGESTIONS FOR {mbtiType}</h2>
-                  <div className="flex flex-col gap-2">
-                    {mbtiPrompts.map((prompt, index) => (
-                      <button
-                        key={index}
-                        onClick={() => {
-                          // First set the prompt
-                          handleSelectPrompt(prompt);
-                          // Then force a small delay to ensure the state is updated
-                          setTimeout(() => {
-                            const textareaElement = document.querySelector('textarea');
-                            if (textareaElement) {
-                              // Focus the textarea and dispatch an input event to trigger changes
-                              textareaElement.focus();
-                              const event = new Event('input', { bubbles: true });
-                              textareaElement.dispatchEvent(event);
-                              
-                              // Also simulate an Enter key press to submit the form
-                              const enterEvent = new KeyboardEvent('keydown', {
-                                key: 'Enter',
-                                code: 'Enter',
-                                bubbles: true
-                              });
-                              textareaElement.dispatchEvent(enterEvent);
-                            }
-                          }, 100);
-                        }}
-                        className="text-left p-2 text-sm bg-secondary/50 rounded-lg hover:bg-secondary transition-colors"
-                      >
-                        {prompt}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ) : (
-                <SuggestedPrompts onSelectPrompt={handleSelectPrompt} />
-              )}
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-4 flex-1 overflow-hidden">
+            <div className="col-span-12 h-[70vh] sm:h-[75vh] md:h-auto flex-1 overflow-hidden flex flex-col">
+              <ChatInterface initialQuestion={currentPrompt} mbtiType={mbtiType} />
             </div>
             
-            <div className="col-span-1 md:col-span-3 flex-1 h-[60vh] md:h-auto overflow-hidden">
-              <ChatInterface initialQuestion={currentPrompt} mbtiType={mbtiType} />
+            <div className="col-span-12 mt-auto overflow-x-auto py-2">
+              <div className="flex flex-nowrap gap-2 pb-1">
+                {(mbtiType && mbtiPrompts.length > 0 ? mbtiPrompts : getSuggestedPrompts()).map((prompt, index) => (
+                  <button
+                    key={index}
+                    onClick={() => {
+                      // First set the prompt
+                      handleSelectPrompt(prompt);
+                      // Then force a small delay to ensure the state is updated
+                      setTimeout(() => {
+                        const textareaElement = document.querySelector('textarea');
+                        if (textareaElement) {
+                          textareaElement.value = prompt;
+                          textareaElement.focus();
+                          
+                          // Dispatch input event
+                          const event = new Event('input', { bubbles: true });
+                          textareaElement.dispatchEvent(event);
+                          
+                          // Simulate Enter keypress to submit
+                          setTimeout(() => {
+                            const enterEvent = new KeyboardEvent('keydown', {
+                              key: 'Enter',
+                              code: 'Enter',
+                              bubbles: true
+                            });
+                            textareaElement.dispatchEvent(enterEvent);
+                          }, 50);
+                        }
+                      }, 100);
+                    }}
+                    className="text-left px-3 py-2 text-sm whitespace-nowrap bg-secondary/50 rounded-full hover:bg-secondary transition-colors hover:scale-105 transition-transform flex-shrink-0"
+                  >
+                    {prompt.length > 60 ? prompt.substring(0, 57) + '...' : prompt}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         </div>

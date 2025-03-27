@@ -4,19 +4,19 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowRight, ArrowLeft, CheckCircle, Loader2, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
+import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
 import { mbtiQuestions, calculateMBTIType, personalityDescriptions } from '@/utils/mbtiCalculator';
 import StorageService from '@/services/storage';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const MBTIAssessment = () => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<{[key: number]: 'A' | 'B'}>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   
   const currentQuestion = mbtiQuestions[currentQuestionIndex];
   const progress = ((currentQuestionIndex + 1) / mbtiQuestions.length) * 100;
@@ -136,7 +136,7 @@ const MBTIAssessment = () => {
   };
   
   return (
-    <div className="space-y-6 max-w-3xl mx-auto">
+    <div className="space-y-6 max-w-5xl mx-auto">
       <div className="mb-4">
         <div className="flex justify-between text-sm mb-2">
           <span>Question {currentQuestionIndex + 1} of {mbtiQuestions.length}</span>
@@ -162,42 +162,78 @@ const MBTIAssessment = () => {
         </div>
       </div>
       
-      <Card className="mb-8">
-        <CardContent className="p-6 md:p-8">
-          <motion.div
-            key={currentQuestion.id}
-            initial="hidden"
-            animate="visible"
-            exit="exit"
-            variants={fadeVariants}
-            className="space-y-6"
+      {/* Question Title */}
+      <motion.div
+        key={`title-${currentQuestion.id}`}
+        initial="hidden"
+        animate="visible"
+        exit="exit"
+        variants={fadeVariants}
+        className="text-center mb-6"
+      >
+        <h2 className="text-xl md:text-2xl font-semibold">
+          Which statement describes you better?
+        </h2>
+      </motion.div>
+      
+      {/* Side-by-side choice boxes */}
+      <div className={`grid grid-cols-1 ${isMobile ? "gap-4" : "md:grid-cols-2 gap-6"} mb-8`}>
+        <motion.div
+          key={`option-a-${currentQuestion.id}`}
+          initial="hidden"
+          animate="visible"
+          exit="exit"
+          variants={fadeVariants}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+        >
+          <button
+            onClick={() => handleAnswer('A')}
+            className={`w-full h-full min-h-[150px] p-6 md:p-8 rounded-xl text-left flex flex-col justify-center transition-all duration-200 ${
+              answers[currentQuestion.id] === 'A' 
+                ? 'bg-blue-500 text-white shadow-lg ring-2 ring-blue-300' 
+                : 'bg-secondary/70 hover:bg-secondary hover:shadow-md'
+            }`}
           >
-            <h2 className="text-xl font-semibold mb-4">
-              {currentQuestionIndex + 1}. Which of the following statements describe you more?
-            </h2>
-            
-            <RadioGroup
-              value={answers[currentQuestion.id]}
-              onValueChange={(value: 'A' | 'B') => handleAnswer(value)}
-              className="space-y-4"
-            >
-              <div className="flex items-start space-x-2 p-4 border rounded-lg hover:bg-secondary/30 transition-colors cursor-pointer">
-                <RadioGroupItem value="A" id={`option-a-${currentQuestion.id}`} className="mt-1" />
-                <Label htmlFor={`option-a-${currentQuestion.id}`} className="cursor-pointer flex-1">
-                  {currentQuestion.optionA}
-                </Label>
+            <div className="flex items-start gap-4">
+              <div className={`flex-shrink-0 h-6 w-6 rounded-full flex items-center justify-center ${
+                answers[currentQuestion.id] === 'A' ? 'bg-white text-blue-500' : 'border border-primary/50'
+              }`}>
+                {answers[currentQuestion.id] === 'A' ? <CheckCircle className="h-5 w-5" /> : <span className="text-sm">A</span>}
               </div>
-              
-              <div className="flex items-start space-x-2 p-4 border rounded-lg hover:bg-secondary/30 transition-colors cursor-pointer">
-                <RadioGroupItem value="B" id={`option-b-${currentQuestion.id}`} className="mt-1" />
-                <Label htmlFor={`option-b-${currentQuestion.id}`} className="cursor-pointer flex-1">
-                  {currentQuestion.optionB}
-                </Label>
+              <span className="text-lg">{currentQuestion.optionA}</span>
+            </div>
+          </button>
+        </motion.div>
+        
+        <motion.div
+          key={`option-b-${currentQuestion.id}`}
+          initial="hidden"
+          animate="visible"
+          exit="exit"
+          variants={fadeVariants}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+        >
+          <button
+            onClick={() => handleAnswer('B')}
+            className={`w-full h-full min-h-[150px] p-6 md:p-8 rounded-xl text-left flex flex-col justify-center transition-all duration-200 ${
+              answers[currentQuestion.id] === 'B' 
+                ? 'bg-green-500 text-white shadow-lg ring-2 ring-green-300' 
+                : 'bg-secondary/70 hover:bg-secondary hover:shadow-md'
+            }`}
+          >
+            <div className="flex items-start gap-4">
+              <div className={`flex-shrink-0 h-6 w-6 rounded-full flex items-center justify-center ${
+                answers[currentQuestion.id] === 'B' ? 'bg-white text-green-500' : 'border border-primary/50'
+              }`}>
+                {answers[currentQuestion.id] === 'B' ? <CheckCircle className="h-5 w-5" /> : <span className="text-sm">B</span>}
               </div>
-            </RadioGroup>
-          </motion.div>
-        </CardContent>
-      </Card>
+              <span className="text-lg">{currentQuestion.optionB}</span>
+            </div>
+          </button>
+        </motion.div>
+      </div>
       
       <div className="flex justify-between">
         <div className="flex gap-2">

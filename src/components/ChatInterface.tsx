@@ -12,6 +12,7 @@ import { toast } from 'sonner';
 import GeminiService from '@/services/gemini';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface ChatInterfaceProps {
   className?: string;
@@ -36,13 +37,27 @@ const ChatInterface = ({ className = "", initialQuestion, mbtiType }: ChatInterf
   const [editedContent, setEditedContent] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const initialQuestionSent = useRef(false);
+  const isMobile = useIsMobile();
   
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [messages]);
+
+  useEffect(() => {
+    // Focus chat container and prevent body scrolling
+    if (chatContainerRef.current) {
+      chatContainerRef.current.focus();
+      document.body.classList.add('overflow-fix');
+    }
+    
+    return () => {
+      document.body.classList.remove('overflow-fix');
+    };
+  }, []);
 
   useEffect(() => {
     // Update input value if initialQuestion changes
@@ -198,7 +213,11 @@ const ChatInterface = ({ className = "", initialQuestion, mbtiType }: ChatInterf
   };
 
   return (
-    <div className={`flex flex-col w-full h-full overflow-hidden rounded-xl glass border shadow-sm ${className}`} ref={chatContainerRef}>
+    <div 
+      className={`flex flex-col w-full h-full overflow-hidden rounded-xl glass border shadow-sm ${className}`} 
+      ref={chatContainerRef}
+      tabIndex={0}
+    >
       <div className="flex items-center justify-between p-3 border-b">
         <div className="flex items-center gap-2">
           <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10">
@@ -216,7 +235,7 @@ const ChatInterface = ({ className = "", initialQuestion, mbtiType }: ChatInterf
         </Button>
       </div>
       
-      <div className="flex-1 overflow-y-auto p-4 pb-0 space-y-4">
+      <div className="flex-1 overflow-y-auto p-4 scrollbar-thin" ref={messagesContainerRef}>
         <AnimatePresence>
           {messages.map((message) => (
             <motion.div
@@ -226,16 +245,16 @@ const ChatInterface = ({ className = "", initialQuestion, mbtiType }: ChatInterf
               animate="animate"
               exit="exit"
               variants={chatMessageAnimation}
-              className={`flex gap-3 ${
+              className={`flex gap-3 mb-4 ${
                 message.role === 'user' ? 'flex-row-reverse' : ''
               }`}
             >
               {message.role === 'assistant' ? (
-                <Avatar className="w-7 h-7 mt-1 bg-primary text-primary-foreground flex items-center justify-center">
-                  <Bot className="w-3.5 h-3.5" />
+                <Avatar className="w-8 h-8 mt-1 bg-primary text-primary-foreground flex items-center justify-center">
+                  <Bot className="w-4 h-4" />
                 </Avatar>
               ) : (
-                <Avatar className="w-7 h-7 mt-1 bg-secondary text-secondary-foreground flex items-center justify-center">
+                <Avatar className="w-8 h-8 mt-1 bg-secondary text-secondary-foreground flex items-center justify-center">
                   <span className="text-xs">U</span>
                 </Avatar>
               )}
@@ -365,10 +384,10 @@ const ChatInterface = ({ className = "", initialQuestion, mbtiType }: ChatInterf
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="flex gap-3"
+            className="flex gap-3 mb-4"
           >
-            <Avatar className="w-7 h-7 mt-1 bg-primary text-primary-foreground flex items-center justify-center">
-              <Bot className="w-3.5 h-3.5" />
+            <Avatar className="w-8 h-8 mt-1 bg-primary text-primary-foreground flex items-center justify-center">
+              <Bot className="w-4 h-4" />
             </Avatar>
             <div className="p-3 rounded-xl max-w-[80%] bg-secondary/70">
               <div className="flex items-center gap-2">
