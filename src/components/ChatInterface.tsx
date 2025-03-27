@@ -35,6 +35,7 @@ const ChatInterface = ({ className = "", initialQuestion, mbtiType }: ChatInterf
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [editedContent, setEditedContent] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
   const initialQuestionSent = useRef(false);
   
   useEffect(() => {
@@ -197,24 +198,21 @@ const ChatInterface = ({ className = "", initialQuestion, mbtiType }: ChatInterf
   };
 
   return (
-    <div className={`flex flex-col w-full h-[80vh] max-h-[80vh] overflow-hidden rounded-xl glass border shadow-sm ${className}`}>
-      <div className="flex items-center justify-between p-4 border-b">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-            <Bot className="w-5 h-5 text-primary" />
+    <div className={`flex flex-col w-full h-full overflow-hidden rounded-xl glass border shadow-sm ${className}`} ref={chatContainerRef}>
+      <div className="flex items-center justify-between p-3 border-b">
+        <div className="flex items-center gap-2">
+          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10">
+            <Bot className="w-4 h-4 text-primary" />
           </div>
-          <div>
-            <h3 className="font-medium">Career Assistant</h3>
-            <p className="text-xs text-muted-foreground">Powered by AI</p>
-          </div>
+          <h3 className="text-sm font-medium">Career Assistant</h3>
         </div>
         <Button 
           variant="ghost" 
           size="icon" 
           onClick={handleReset}
-          className="text-muted-foreground hover:text-foreground"
+          className="text-muted-foreground hover:text-foreground h-8 w-8"
         >
-          <RotateCcw className="w-4 h-4" />
+          <RotateCcw className="w-3.5 h-3.5" />
         </Button>
       </div>
       
@@ -233,19 +231,19 @@ const ChatInterface = ({ className = "", initialQuestion, mbtiType }: ChatInterf
               }`}
             >
               {message.role === 'assistant' ? (
-                <Avatar className="w-8 h-8 mt-1 bg-primary text-primary-foreground">
-                  <Bot className="w-4 h-4" />
+                <Avatar className="w-7 h-7 mt-1 bg-primary text-primary-foreground flex items-center justify-center">
+                  <Bot className="w-3.5 h-3.5" />
                 </Avatar>
               ) : (
-                <Avatar className="w-8 h-8 mt-1 bg-secondary text-secondary-foreground">
-                  U
+                <Avatar className="w-7 h-7 mt-1 bg-secondary text-secondary-foreground flex items-center justify-center">
+                  <span className="text-xs">U</span>
                 </Avatar>
               )}
               
               <div
-                className={`p-4 rounded-xl max-w-[80%] ${
+                className={`p-3 rounded-xl max-w-[85%] ${
                   message.role === 'assistant' 
-                    ? 'bg-secondary' 
+                    ? 'bg-secondary/70' 
                     : 'bg-primary text-primary-foreground'
                 }`}
               >
@@ -369,17 +367,17 @@ const ChatInterface = ({ className = "", initialQuestion, mbtiType }: ChatInterf
             animate={{ opacity: 1 }}
             className="flex gap-3"
           >
-            <Avatar className="w-8 h-8 mt-1 bg-primary text-primary-foreground">
-              <Bot className="w-4 h-4" />
+            <Avatar className="w-7 h-7 mt-1 bg-primary text-primary-foreground flex items-center justify-center">
+              <Bot className="w-3.5 h-3.5" />
             </Avatar>
-            <div className="p-4 rounded-xl max-w-[80%] bg-secondary">
+            <div className="p-3 rounded-xl max-w-[80%] bg-secondary/70">
               <div className="flex items-center gap-2">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" />
-                  <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce [animation-delay:0.2s]" />
-                  <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce [animation-delay:0.4s]" />
+                <div className="flex items-center gap-1">
+                  <div className="w-1.5 h-1.5 bg-muted-foreground rounded-full animate-bounce" />
+                  <div className="w-1.5 h-1.5 bg-muted-foreground rounded-full animate-bounce [animation-delay:0.2s]" />
+                  <div className="w-1.5 h-1.5 bg-muted-foreground rounded-full animate-bounce [animation-delay:0.4s]" />
                 </div>
-                <span className="text-sm text-muted-foreground ml-2">
+                <span className="text-xs text-muted-foreground">
                   Thinking...
                 </span>
               </div>
@@ -390,7 +388,7 @@ const ChatInterface = ({ className = "", initialQuestion, mbtiType }: ChatInterf
         <div ref={messagesEndRef} />
       </div>
       
-      <div className="p-4 border-t">
+      <div className="p-3 border-t mt-auto">
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -401,8 +399,8 @@ const ChatInterface = ({ className = "", initialQuestion, mbtiType }: ChatInterf
           <Textarea
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            placeholder="Type your message... (career & education guidance only)"
-            className="resize-none min-h-[56px] max-h-[140px] font-medium"
+            placeholder="Type your message..."
+            className="resize-none min-h-[40px] max-h-[120px] text-sm"
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
@@ -410,7 +408,7 @@ const ChatInterface = ({ className = "", initialQuestion, mbtiType }: ChatInterf
               }
             }}
           />
-          <Button type="submit" disabled={isLoading || !inputValue.trim()}>
+          <Button type="submit" size="sm" disabled={isLoading || !inputValue.trim()} className="h-auto">
             <Send className="w-4 h-4" />
           </Button>
         </form>

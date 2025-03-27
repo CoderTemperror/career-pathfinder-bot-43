@@ -29,7 +29,7 @@ const Navbar = () => {
 
   const routes = [
     { href: "/", label: "Home" },
-    { href: "/assessment", label: "Assessment" },
+    { href: "/mbti", label: "MBTI Test" },
     { href: "/chat", label: "Chat" },
   ];
 

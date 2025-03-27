@@ -44,12 +44,12 @@ const ThemeToggle = () => {
       size="icon" 
       onClick={toggleTheme}
       aria-label={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
-      className="transition-colors"
+      className="transition-colors hover:bg-primary/10"
     >
       {isDarkMode ? (
-        <Sun className="h-5 w-5" />
+        <Sun className="h-5 w-5 text-amber-400" />
       ) : (
-        <Moon className="h-5 w-5" />
+        <Moon className="h-5 w-5 text-indigo-400" />
       )}
     </Button>
   );
