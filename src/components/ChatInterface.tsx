@@ -36,7 +36,6 @@ const ChatInterface = ({ className = "", initialQuestion, mbtiType }: ChatInterf
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [editedContent, setEditedContent] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const chatContainerRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const initialQuestionSent = useRef(false);
   const isMobile = useIsMobile();
@@ -48,15 +47,10 @@ const ChatInterface = ({ className = "", initialQuestion, mbtiType }: ChatInterf
   }, [messages]);
 
   useEffect(() => {
-    // Focus chat container and prevent body scrolling
-    if (chatContainerRef.current) {
-      chatContainerRef.current.focus();
-      document.body.classList.add('overflow-fix');
+    // Focus message container
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.focus();
     }
-    
-    return () => {
-      document.body.classList.remove('overflow-fix');
-    };
   }, []);
 
   useEffect(() => {
@@ -213,224 +207,229 @@ const ChatInterface = ({ className = "", initialQuestion, mbtiType }: ChatInterf
   };
 
   return (
-    <div 
-      className={`flex flex-col w-full h-full overflow-hidden rounded-xl glass border shadow-sm ${className}`} 
-      ref={chatContainerRef}
-      tabIndex={0}
-    >
-      <div className="flex items-center justify-between p-3 border-b">
-        <div className="flex items-center gap-2">
-          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10">
-            <Bot className="w-4 h-4 text-primary" />
-          </div>
-          <h3 className="text-sm font-medium">Career Assistant</h3>
-        </div>
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          onClick={handleReset}
-          className="text-muted-foreground hover:text-foreground h-8 w-8"
-        >
-          <RotateCcw className="w-3.5 h-3.5" />
-        </Button>
-      </div>
-      
-      <div className="flex-1 overflow-y-auto p-4 scrollbar-thin" ref={messagesContainerRef}>
-        <AnimatePresence>
-          {messages.map((message) => (
-            <motion.div
-              key={message.id}
-              layout
-              initial="initial"
-              animate="animate"
-              exit="exit"
-              variants={chatMessageAnimation}
-              className={`flex gap-3 mb-4 ${
-                message.role === 'user' ? 'flex-row-reverse' : ''
-              }`}
-            >
-              {message.role === 'assistant' ? (
-                <Avatar className="w-8 h-8 mt-1 bg-primary text-primary-foreground flex items-center justify-center">
-                  <Bot className="w-4 h-4" />
-                </Avatar>
-              ) : (
-                <Avatar className="w-8 h-8 mt-1 bg-secondary text-secondary-foreground flex items-center justify-center">
-                  <span className="text-xs">U</span>
-                </Avatar>
-              )}
-              
-              <div
-                className={`p-3 rounded-xl max-w-[85%] ${
-                  message.role === 'assistant' 
-                    ? 'bg-secondary/70' 
-                    : 'bg-primary text-primary-foreground'
-                }`}
+    <div className="flex flex-col w-full h-full overflow-hidden">
+      {/* Chat messages area */}
+      <div 
+        className="flex-1 overflow-y-auto scrollbar-thin p-0 bg-white dark:bg-gray-900" 
+        ref={messagesContainerRef}
+      >
+        <div className="max-w-3xl mx-auto px-4 pb-32 pt-4">
+          <AnimatePresence>
+            {messages.map((message) => (
+              <motion.div
+                key={message.id}
+                layout
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                variants={chatMessageAnimation}
+                className="mb-6"
               >
-                {editingMessageId === message.id ? (
-                  <div className="space-y-2">
-                    <Textarea
-                      value={editedContent}
-                      onChange={(e) => setEditedContent(e.target.value)}
-                      className="min-h-[100px] bg-background/80 text-foreground"
-                      placeholder="Edit your message..."
-                    />
-                    <div className="flex justify-end gap-2">
-                      <Button 
-                        size="sm" 
-                        variant="outline" 
-                        onClick={cancelEditing}
-                      >
-                        <X className="w-3 h-3 mr-1" /> Cancel
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        onClick={() => saveEdit(message.id)}
-                      >
-                        Save
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  <>
-                    {message.role === 'assistant' ? (
-                      <ReactMarkdown
-                        remarkPlugins={[remarkGfm]}
-                        components={{
-                          p: ({ node, ...props }) => (
-                            <p className="text-sm whitespace-pre-wrap" {...props} />
-                          ),
-                          a: ({ node, ...props }) => (
-                            <a className="text-blue-500 hover:underline" {...props} target="_blank" rel="noopener noreferrer" />
-                          ),
-                          ul: ({ node, ...props }) => (
-                            <ul className="list-disc pl-5 my-2" {...props} />
-                          ),
-                          ol: ({ node, ...props }) => (
-                            <ol className="list-decimal pl-5 my-2" {...props} />
-                          ),
-                          li: ({ node, ...props }) => (
-                            <li className="my-1" {...props} />
-                          ),
-                          h1: ({ node, ...props }) => (
-                            <h1 className="text-lg font-bold my-2" {...props} />
-                          ),
-                          h2: ({ node, ...props }) => (
-                            <h2 className="text-md font-bold my-2" {...props} />
-                          ),
-                          h3: ({ node, ...props }) => (
-                            <h3 className="text-sm font-bold my-2" {...props} />
-                          ),
-                          code: ({ node, className, children, ...props }: any) => {
-                            const match = /language-(\w+)/.exec(className || '');
-                            const isInline = !className;
-                            return isInline ? (
-                              <code className="bg-black/10 px-1 py-0.5 rounded" {...props}>
-                                {children}
-                              </code>
-                            ) : (
-                              <code className="block bg-black/10 p-2 my-2 rounded overflow-x-auto" {...props}>
-                                {children}
-                              </code>
-                            );
-                          },
-                          pre: ({ node, ...props }) => (
-                            <pre className="bg-black/10 p-2 my-2 rounded overflow-x-auto" {...props} />
-                          ),
-                          blockquote: ({ node, ...props }) => (
-                            <blockquote className="border-l-4 border-gray-300 pl-4 my-2 italic" {...props} />
-                          ),
-                        }}
-                      >
-                        {message.content}
-                      </ReactMarkdown>
-                    ) : (
-                      <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                    )}
-                    <div className="mt-1 text-right flex justify-end items-center gap-1">
-                      {message.role === 'user' && (
-                        <div className="flex gap-1">
+                <div className="flex gap-3 items-start group">
+                  {message.role === 'assistant' ? (
+                    <Avatar className="w-8 h-8 mt-1 bg-blue-500 text-white flex items-center justify-center">
+                      <Bot className="w-4 h-4" />
+                    </Avatar>
+                  ) : (
+                    <Avatar className="w-8 h-8 mt-1 bg-gray-300 dark:bg-gray-700 text-gray-700 dark:text-gray-300 flex items-center justify-center">
+                      <span className="text-xs">U</span>
+                    </Avatar>
+                  )}
+                  
+                  <div className="flex-1 overflow-hidden">
+                    {editingMessageId === message.id ? (
+                      <div className="space-y-2">
+                        <Textarea
+                          value={editedContent}
+                          onChange={(e) => setEditedContent(e.target.value)}
+                          className="min-h-[100px] bg-background/80 text-foreground border-blue-200 focus-visible:ring-blue-400"
+                          placeholder="Edit your message..."
+                        />
+                        <div className="flex justify-end gap-2">
                           <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="h-5 w-5 rounded-full hover:bg-primary-foreground/10"
-                            onClick={() => startEditing(message)}
+                            size="sm" 
+                            variant="outline" 
+                            onClick={cancelEditing}
+                            className="text-gray-500"
                           >
-                            <PencilLine className="h-3 w-3" />
-                            <span className="sr-only">Edit message</span>
+                            <X className="w-3 h-3 mr-1" /> Cancel
                           </Button>
                           <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="h-5 w-5 rounded-full hover:bg-primary-foreground/10"
-                            onClick={() => resendMessage(message)}
+                            size="sm" 
+                            onClick={() => saveEdit(message.id)}
+                            className="bg-blue-500 hover:bg-blue-600"
                           >
-                            <MessageSquare className="h-3 w-3" />
-                            <span className="sr-only">Reuse message</span>
+                            Save
                           </Button>
                         </div>
-                      )}
-                      <span className={`text-xs ${message.role === 'user' ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}>
-                        {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </span>
+                      </div>
+                    ) : (
+                      <div>
+                        {message.role === 'assistant' ? (
+                          <ReactMarkdown
+                            remarkPlugins={[remarkGfm]}
+                            components={{
+                              p: ({ node, ...props }) => (
+                                <p className="text-sm whitespace-pre-wrap mb-4" {...props} />
+                              ),
+                              a: ({ node, ...props }) => (
+                                <a className="text-blue-500 hover:underline" {...props} target="_blank" rel="noopener noreferrer" />
+                              ),
+                              ul: ({ node, ...props }) => (
+                                <ul className="list-disc pl-5 my-2" {...props} />
+                              ),
+                              ol: ({ node, ...props }) => (
+                                <ol className="list-decimal pl-5 my-2" {...props} />
+                              ),
+                              li: ({ node, ...props }) => (
+                                <li className="my-1" {...props} />
+                              ),
+                              h1: ({ node, ...props }) => (
+                                <h1 className="text-lg font-bold my-3" {...props} />
+                              ),
+                              h2: ({ node, ...props }) => (
+                                <h2 className="text-md font-bold my-2" {...props} />
+                              ),
+                              h3: ({ node, ...props }) => (
+                                <h3 className="text-sm font-bold my-2" {...props} />
+                              ),
+                              code: ({ node, className, children, ...props }: any) => {
+                                const match = /language-(\w+)/.exec(className || '');
+                                const isInline = !className;
+                                return isInline ? (
+                                  <code className="bg-gray-100 dark:bg-gray-800 px-1 py-0.5 rounded text-xs" {...props}>
+                                    {children}
+                                  </code>
+                                ) : (
+                                  <code className="block bg-gray-100 dark:bg-gray-800 p-2 my-2 rounded overflow-x-auto text-xs" {...props}>
+                                    {children}
+                                  </code>
+                                );
+                              },
+                              pre: ({ node, ...props }) => (
+                                <pre className="bg-gray-100 dark:bg-gray-800 p-2 my-2 rounded overflow-x-auto text-xs" {...props} />
+                              ),
+                              blockquote: ({ node, ...props }) => (
+                                <blockquote className="border-l-4 border-blue-300 dark:border-blue-700 pl-4 my-2 italic text-gray-600 dark:text-gray-400" {...props} />
+                              ),
+                            }}
+                          >
+                            {message.content}
+                          </ReactMarkdown>
+                        ) : (
+                          <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  
+                  {!editingMessageId && message.role === 'user' && (
+                    <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-7 w-7 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800"
+                        onClick={() => startEditing(message)}
+                      >
+                        <PencilLine className="h-3.5 w-3.5 text-gray-500" />
+                        <span className="sr-only">Edit message</span>
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-7 w-7 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800"
+                        onClick={() => resendMessage(message)}
+                      >
+                        <MessageSquare className="h-3.5 w-3.5 text-gray-500" />
+                        <span className="sr-only">Reuse message</span>
+                      </Button>
                     </div>
-                  </>
-                )}
+                  )}
+                </div>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+          
+          {isLoading && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="mb-6"
+            >
+              <div className="flex gap-3 items-start">
+                <Avatar className="w-8 h-8 mt-1 bg-blue-500 text-white flex items-center justify-center">
+                  <Bot className="w-4 h-4" />
+                </Avatar>
+                <div className="p-2">
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1">
+                      <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" />
+                      <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce [animation-delay:0.2s]" />
+                      <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce [animation-delay:0.4s]" />
+                    </div>
+                    <span className="text-xs text-gray-500">
+                      Thinking...
+                    </span>
+                  </div>
+                </div>
               </div>
             </motion.div>
-          ))}
-        </AnimatePresence>
-        
-        {isLoading && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="flex gap-3 mb-4"
-          >
-            <Avatar className="w-8 h-8 mt-1 bg-primary text-primary-foreground flex items-center justify-center">
-              <Bot className="w-4 h-4" />
-            </Avatar>
-            <div className="p-3 rounded-xl max-w-[80%] bg-secondary/70">
-              <div className="flex items-center gap-2">
-                <div className="flex items-center gap-1">
-                  <div className="w-1.5 h-1.5 bg-muted-foreground rounded-full animate-bounce" />
-                  <div className="w-1.5 h-1.5 bg-muted-foreground rounded-full animate-bounce [animation-delay:0.2s]" />
-                  <div className="w-1.5 h-1.5 bg-muted-foreground rounded-full animate-bounce [animation-delay:0.4s]" />
-                </div>
-                <span className="text-xs text-muted-foreground">
-                  Thinking...
-                </span>
-              </div>
-            </div>
-          </motion.div>
-        )}
-        
-        <div ref={messagesEndRef} />
+          )}
+          
+          <div ref={messagesEndRef} className="h-4" />
+        </div>
       </div>
       
-      <div className="p-3 border-t mt-auto">
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            handleSendMessage();
-          }}
-          className="flex gap-2"
-        >
-          <Textarea
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            placeholder="Type your message..."
-            className="resize-none min-h-[40px] max-h-[120px] text-sm"
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                handleSendMessage();
-              }
-            }}
-          />
-          <Button type="submit" size="sm" disabled={isLoading || !inputValue.trim()} className="h-auto">
-            <Send className="w-4 h-4" />
+      {/* Chat input area - fixed at bottom */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t py-3 px-4 md:px-0">
+        <div className="max-w-3xl mx-auto flex items-center">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={handleReset}
+            className="mr-2 h-9 w-9 rounded-full border-gray-300 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 hidden md:flex"
+            title="Start new chat"
+          >
+            <RotateCcw className="h-4 w-4" />
           </Button>
-        </form>
+          
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleSendMessage();
+            }}
+            className="flex-1 flex items-center relative"
+          >
+            <Textarea
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              placeholder="Message Career Assistant..."
+              className="resize-none min-h-[40px] max-h-[120px] text-sm pr-10 border-gray-300 focus-visible:ring-blue-500 rounded-lg"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSendMessage();
+                }
+              }}
+            />
+            <Button 
+              type="submit" 
+              size="icon" 
+              className={`absolute right-1.5 bottom-1 h-8 w-8 rounded-md ${
+                !inputValue.trim() || isLoading 
+                  ? 'bg-gray-300 text-gray-600 hover:bg-gray-300 cursor-not-allowed' 
+                  : 'bg-blue-500 hover:bg-blue-600 text-white'
+              }`}
+              disabled={!inputValue.trim() || isLoading}
+            >
+              {isLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Send className="h-4 w-4" />
+              )}
+            </Button>
+          </form>
+        </div>
       </div>
     </div>
   );

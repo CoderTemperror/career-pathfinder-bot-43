@@ -39,46 +39,51 @@ const Navbar = () => {
         scrolled ? "bg-background/80 backdrop-blur-md border-b" : ""
       }`}
     >
-      <nav className="container flex items-center justify-between py-4 px-4 md:px-8">
-        <Link
-          to="/"
-          className="font-display text-xl font-bold tracking-tight inline-flex items-center"
-        >
-          Career Compass
-        </Link>
+      <nav className="container flex flex-col items-center justify-between py-4 px-4 md:px-8">
+        <div className="flex w-full items-center justify-between">
+          <Link
+            to="/"
+            className="font-display text-xl font-bold tracking-tight inline-flex flex-col items-center"
+          >
+            <span className="text-gradient-primary bg-gradient-to-r from-blue-500 to-indigo-500 bg-clip-text text-transparent">Career Compass</span>
+            <span className="text-xs text-muted-foreground">SBH 2025 Junior</span>
+          </Link>
 
-        <div className="hidden md:flex items-center space-x-1">
-          {routes.map((route) => (
-            <Link
-              key={route.href}
-              to={route.href}
-              className={`px-3 py-2 rounded-md text-sm ${
-                location.pathname === route.href
-                  ? "font-medium text-foreground"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              {route.label}
-            </Link>
-          ))}
-        </div>
+          <div className="hidden md:flex items-center justify-center flex-1">
+            <div className="flex items-center space-x-2">
+              {routes.map((route) => (
+                <Link
+                  key={route.href}
+                  to={route.href}
+                  className={`px-4 py-2 rounded-md text-sm transition-colors ${
+                    location.pathname === route.href
+                      ? "bg-primary/10 font-medium text-foreground"
+                      : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                  }`}
+                >
+                  {route.label}
+                </Link>
+              ))}
+            </div>
+          </div>
 
-        <div className="flex items-center gap-2">
-          <ThemeToggle />
-          
-          <div className="md:hidden">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={toggleMenu}
-              aria-label={isOpen ? "Close menu" : "Open menu"}
-            >
-              {isOpen ? (
-                <X className="h-5 w-5" />
-              ) : (
-                <MenuIcon className="h-5 w-5" />
-              )}
-            </Button>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            
+            <div className="md:hidden">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={toggleMenu}
+                aria-label={isOpen ? "Close menu" : "Open menu"}
+              >
+                {isOpen ? (
+                  <X className="h-5 w-5" />
+                ) : (
+                  <MenuIcon className="h-5 w-5" />
+                )}
+              </Button>
+            </div>
           </div>
         </div>
       </nav>

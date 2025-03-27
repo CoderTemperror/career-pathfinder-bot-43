@@ -27,6 +27,13 @@
     --input: 240 5.9% 90%;
     --ring: 240 5.9% 10%;
     --radius: 0.75rem;
+    
+    /* Custom color accents */
+    --blue-accent: 214 100% 60%;
+    --indigo-accent: 240 60% 60%;
+    --green-accent: 160 84% 39%;
+    --amber-accent: 30 100% 50%;
+    --rose-accent: 350 100% 66%;
   }
  
   .dark {
@@ -49,6 +56,13 @@
     --border: 240 3.7% 15.9%;
     --input: 240 3.7% 15.9%;
     --ring: 240 4.9% 83.9%;
+    
+    /* Custom color accents in dark mode */
+    --blue-accent: 214 100% 50%;
+    --indigo-accent: 240 70% 70%;
+    --green-accent: 160 84% 39%;
+    --amber-accent: 30 100% 50%;
+    --rose-accent: 350 100% 66%;
   }
 }
  
@@ -175,3 +189,37 @@ html {
   max-height: 100vh;
 }
 
+/* Gradient text */
+.text-gradient-primary {
+  @apply bg-gradient-to-r from-blue-500 to-indigo-500 bg-clip-text text-transparent;
+}
+
+.text-gradient-secondary {
+  @apply bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent;
+}
+
+.text-gradient-accent {
+  @apply bg-gradient-to-r from-green-400 to-emerald-500 bg-clip-text text-transparent;
+}
+
+/* Card hover animation */
+.card-hover {
+  @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-1 hover:bg-opacity-95;
+}
+
+/* Color Accents */
+.accent-blue {
+  @apply text-blue-500 dark:text-blue-400;
+}
+
+.accent-indigo {
+  @apply text-indigo-500 dark:text-indigo-400;
+}
+
+.accent-green {
+  @apply text-green-500 dark:text-green-400;
+}
+
+.accent-amber {
+  @apply text-amber-500 dark:text-amber-400;
+}
