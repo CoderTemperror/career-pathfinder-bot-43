@@ -210,11 +210,11 @@ const ChatInterface = ({ className = "", initialQuestion, mbtiType }: ChatInterf
     <div className="flex flex-col w-full h-full overflow-hidden">
       {/* Chat messages area */}
       <div 
-        className="flex-1 overflow-y-auto p-0 bg-background" 
+        className="flex-1 overflow-y-auto scrollbar-thin bg-background" 
         ref={messagesContainerRef}
       >
-        <div className="max-w-3xl mx-auto px-4 pb-32 pt-4">
-          <AnimatePresence>
+        <div className="max-w-3xl mx-auto px-4 pb-28 pt-4">
+          <AnimatePresence initial={false}>
             {messages.map((message) => (
               <motion.div
                 key={message.id}
@@ -223,36 +223,61 @@ const ChatInterface = ({ className = "", initialQuestion, mbtiType }: ChatInterf
                 animate="animate"
                 exit="exit"
                 variants={chatMessageAnimation}
-                className={`mb-6 ${message.role === 'user' ? 'flex justify-end' : ''}`}
+                className={`mb-6 ${message.role === 'user' ? 'ml-auto max-w-[80%]' : 'mr-auto max-w-full'}`}
               >
                 {message.role === 'user' ? (
-                  // User message - right-aligned with background
-                  <div className="max-w-[85%] md:max-w-[75%] bg-primary/10 p-4 rounded-lg text-foreground">
-                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                    <div className="flex justify-end gap-2 mt-2 opacity-0 hover:opacity-100 transition-opacity">
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="h-6 w-6 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800"
-                        onClick={() => startEditing(message)}
-                      >
-                        <PencilLine className="h-3 w-3 text-muted-foreground" />
-                        <span className="sr-only">Edit message</span>
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="h-6 w-6 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800"
-                        onClick={() => resendMessage(message)}
-                      >
-                        <MessageSquare className="h-3 w-3 text-muted-foreground" />
-                        <span className="sr-only">Reuse message</span>
-                      </Button>
+                  // User message - right-aligned with minimal background
+                  <div className="flex justify-end">
+                    <div className="bg-primary/10 py-2 px-3 rounded-lg text-foreground">
+                      {editingMessageId === message.id ? (
+                        <div className="min-w-[150px]">
+                          <Textarea
+                            value={editedContent}
+                            onChange={(e) => setEditedContent(e.target.value)}
+                            className="mb-2 min-h-[60px] text-sm"
+                            autoFocus
+                          />
+                          <div className="flex justify-end gap-2">
+                            <Button variant="ghost" size="sm" onClick={cancelEditing}>
+                              Cancel
+                            </Button>
+                            <Button size="sm" onClick={() => saveEdit(message.id)}>
+                              Save
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div>
+                          <p className="text-sm whitespace-pre-wrap break-words">{message.content}</p>
+                          <div className="flex justify-end gap-2 mt-1">
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-5 w-5 rounded-full opacity-0 hover:opacity-100 focus:opacity-100 hover:bg-background/80"
+                              onClick={() => startEditing(message)}
+                              tabIndex={-1}
+                            >
+                              <PencilLine className="h-3 w-3 text-muted-foreground" />
+                              <span className="sr-only">Edit message</span>
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-5 w-5 rounded-full opacity-0 hover:opacity-100 focus:opacity-100 hover:bg-background/80"
+                              onClick={() => resendMessage(message)}
+                              tabIndex={-1}
+                            >
+                              <MessageSquare className="h-3 w-3 text-muted-foreground" />
+                              <span className="sr-only">Reuse message</span>
+                            </Button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ) : (
-                  // Assistant message - full width
-                  <div className="flex gap-3 items-start w-full">
+                  // Assistant message - left-aligned with avatar
+                  <div className="flex gap-3 items-start">
                     <Avatar className="w-8 h-8 mt-1 bg-primary/80 text-primary-foreground flex items-center justify-center">
                       <Bot className="w-4 h-4" />
                     </Avatar>
@@ -346,7 +371,7 @@ const ChatInterface = ({ className = "", initialQuestion, mbtiType }: ChatInterf
       </div>
       
       {/* Chat input area - fixed at bottom */}
-      <div className="fixed bottom-0 left-0 right-0 bg-background border-t py-3 px-4 md:px-0">
+      <div className="fixed bottom-0 left-0 right-0 bg-background/80 backdrop-blur-md border-t py-3 px-4 md:px-0 z-20">
         <div className="max-w-3xl mx-auto flex items-center">
           <Button
             variant="outline"
@@ -369,7 +394,7 @@ const ChatInterface = ({ className = "", initialQuestion, mbtiType }: ChatInterf
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               placeholder="Message Career Assistant..."
-              className="resize-none min-h-[40px] max-h-[120px] text-sm pr-10 rounded-lg"
+              className="resize-none min-h-[40px] max-h-[120px] text-sm pr-10 rounded-lg shadow-sm border-muted"
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();

@@ -59,7 +59,7 @@ const Chat = () => {
   return (
     <TransitionLayout>
       <Navbar />
-      <div className="flex min-h-screen max-h-screen overflow-hidden">
+      <div className="flex min-h-screen max-h-screen pt-[72px] overflow-hidden">
         {/* Sidebar for suggested prompts */}
         <SuggestedPromptsSidebar 
           onSelectPrompt={handleSelectPrompt}
@@ -68,8 +68,8 @@ const Chat = () => {
         />
         
         {/* Chat content */}
-        <div className="flex-1 flex flex-col pt-20 pb-0 relative">
-          <div className="px-4 py-4 border-b bg-gradient-to-r from-background to-background/80">
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <div className="px-4 py-3 border-b bg-gradient-to-r from-background to-background/80 sticky top-0 z-10">
             <div className="max-w-3xl mx-auto flex items-center">
               <Button
                 variant="ghost"
@@ -87,7 +87,7 @@ const Chat = () => {
                 </h1>
                 {mbtiType && (
                   <div className="flex justify-center mt-2">
-                    <div className="inline-flex items-center bg-primary/10 text-primary-foreground px-3 py-1 rounded-full text-sm font-medium">
+                    <div className="inline-flex items-center bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-medium">
                       MBTI: {mbtiType}
                     </div>
                   </div>
@@ -96,7 +96,7 @@ const Chat = () => {
             </div>
           </div>
           
-          <div className="flex-1 overflow-hidden p-0">
+          <div className="flex-1 overflow-hidden">
             <ChatInterface initialQuestion={currentPrompt} mbtiType={mbtiType} />
           </div>
         </div>

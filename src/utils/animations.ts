@@ -1,129 +1,102 @@
 
-import { AnimationProps } from "framer-motion";
+import { Variants } from 'framer-motion';
 
-// Page transitions
-export const pageVariants = {
+// Page transition animations
+export const pageVariants: Variants = {
   initial: {
     opacity: 0,
-    scale: 0.98,
+    y: 20,
   },
   enter: {
     opacity: 1,
-    scale: 1,
+    y: 0,
     transition: {
-      duration: 0.5,
-      ease: [0.19, 1, 0.22, 1], // Expo ease out
-      staggerChildren: 0.1,
+      duration: 0.3,
+      ease: 'easeInOut',
     },
   },
   exit: {
     opacity: 0,
-    scale: 0.98,
+    y: -20,
     transition: {
-      duration: 0.4,
-      ease: [0.19, 1, 0.22, 1], // Expo ease out
+      duration: 0.2,
+      ease: 'easeInOut',
     },
   },
 };
 
-// Content item animations
-export const itemVariants = {
-  hidden: { 
-    opacity: 0, 
-    y: 20 
+// Chat message animation
+export const chatMessageAnimation: Variants = {
+  initial: { 
+    opacity: 0,
+    y: 20,
+    scale: 0.97,
   },
-  visible: { 
-    opacity: 1, 
-    y: 0, 
-    transition: {
-      duration: 0.6,
-      ease: [0.19, 1, 0.22, 1], // Expo ease out
-    }
-  },
-};
-
-// Staggered children animation
-export const staggerContainer: AnimationProps = {
-  initial: "hidden",
-  animate: "visible",
-  variants: {
-    hidden: { opacity: 1 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-      },
-    },
-  },
-};
-
-// Subtle hover animation for cards and interactive elements
-export const hoverAnimation = {
-  whileHover: {
-    y: -5,
-    boxShadow: "0 10px 25px rgba(0, 0, 0, 0.05)",
-    transition: { duration: 0.3, ease: "easeOut" },
-  },
-};
-
-// Chat message animations
-export const chatMessageAnimation = {
-  initial: { opacity: 0, y: 20 },
   animate: { 
-    opacity: 1, 
+    opacity: 1,
     y: 0,
-    transition: {
-      duration: 0.4,
-      ease: [0.19, 1, 0.22, 1],
+    scale: 1,
+    transition: { 
+      duration: 0.25,
     }
   },
   exit: { 
     opacity: 0,
-    height: 0,
-    marginTop: 0,
-    marginBottom: 0,
+    transition: { 
+      duration: 0.2,
+    }
+  }
+};
+
+// Sidebar animation
+export const sidebarAnimation: Variants = {
+  closed: {
+    x: "-100%",
     transition: {
-      duration: 0.3,
-      ease: [0.19, 1, 0.22, 1],
+      type: "spring",
+      stiffness: 400,
+      damping: 40
     }
   },
+  open: {
+    x: 0,
+    transition: {
+      type: "spring",
+      stiffness: 400,
+      damping: 40
+    }
+  }
 };
 
-// Progress bar animation
-export const progressAnimation = {
-  initial: { width: 0 },
-  animate: { 
-    width: "100%",
-    transition: { 
-      duration: 3, 
-      ease: "easeOut" 
-    } 
+// Fade in animation
+export const fadeIn: Variants = {
+  initial: { opacity: 0 },
+  animate: { opacity: 1, transition: { duration: 0.3 } },
+  exit: { opacity: 0, transition: { duration: 0.2 } }
+};
+
+// Notification animation
+export const notificationAnimation: Variants = {
+  initial: { 
+    opacity: 0,
+    y: -20,
+    scale: 0.9,
   },
-};
-
-// Button press animation
-export const buttonTapAnimation = {
-  whileTap: { scale: 0.98 },
-};
-
-// Shared layout animation for cards
-export const cardAnimation = {
-  layout: true,
-  initial: { opacity: 0, scale: 0.96 },
   animate: { 
-    opacity: 1, 
+    opacity: 1,
+    y: 0,
     scale: 1,
     transition: {
       type: "spring",
-      stiffness: 350,
-      damping: 25,
+      stiffness: 500,
+      damping: 30
     }
   },
   exit: { 
-    opacity: 0, 
-    scale: 0.96,
-    transition: {
+    opacity: 0,
+    y: -20,
+    transition: { 
       duration: 0.2,
     }
-  },
+  }
 };

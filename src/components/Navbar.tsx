@@ -37,28 +37,30 @@ const Navbar = () => {
         <div className="flex w-full items-center justify-between">
           <Link
             to="/"
-            className="font-display text-xl font-bold tracking-tight inline-flex flex-col items-start"
+            className="font-display text-xl font-bold tracking-tight"
           >
-            <span className="text-gradient-primary bg-gradient-to-r from-blue-500 to-indigo-500 bg-clip-text text-transparent">Career Compass</span>
-            <span className="text-xs text-muted-foreground">SBH 2025 Junior</span>
+            <div className="flex flex-col">
+              <span className="text-gradient-primary bg-gradient-to-r from-blue-500 to-indigo-500 bg-clip-text text-transparent">Career Compass</span>
+              <span className="text-xs text-muted-foreground -mt-1">SBH 2025 Junior</span>
+            </div>
           </Link>
 
-          <div className="hidden md:flex items-center justify-between flex-1">
-            <Link
-              to="/"
-              className={`px-4 py-2 rounded-md text-sm transition-colors ${
-                location.pathname === "/"
-                  ? "bg-primary/10 font-medium text-foreground"
-                  : "text-muted-foreground hover:text-foreground hover:bg-accent"
-              }`}
-            >
-              Home
-            </Link>
-            
-            <div className="flex-1 flex justify-center">
+          <div className="flex items-center gap-2">
+            <div className="hidden md:flex items-center space-x-1">
+              <Link
+                to="/"
+                className={`px-3 py-1.5 rounded-md text-sm transition-colors ${
+                  location.pathname === "/"
+                    ? "bg-primary/10 font-medium text-foreground"
+                    : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                }`}
+              >
+                Home
+              </Link>
+              
               <Link
                 to="/mbti"
-                className={`px-4 py-2 rounded-md text-sm transition-colors ${
+                className={`px-3 py-1.5 rounded-md text-sm transition-colors ${
                   location.pathname === "/mbti"
                     ? "bg-primary/10 font-medium text-foreground"
                     : "text-muted-foreground hover:text-foreground hover:bg-accent"
@@ -66,21 +68,19 @@ const Navbar = () => {
               >
                 MBTI Test
               </Link>
+              
+              <Link
+                to="/chat"
+                className={`px-3 py-1.5 rounded-md text-sm transition-colors ${
+                  location.pathname === "/chat"
+                    ? "bg-primary/10 font-medium text-foreground"
+                    : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                }`}
+              >
+                Chat
+              </Link>
             </div>
             
-            <Link
-              to="/chat"
-              className={`px-4 py-2 rounded-md text-sm transition-colors ${
-                location.pathname === "/chat"
-                  ? "bg-primary/10 font-medium text-foreground"
-                  : "text-muted-foreground hover:text-foreground hover:bg-accent"
-              }`}
-            >
-              Chat
-            </Link>
-          </div>
-
-          <div className="flex items-center gap-2">
             <ThemeToggle />
             
             <div className="md:hidden">
