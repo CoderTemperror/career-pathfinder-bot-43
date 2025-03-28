@@ -26,12 +26,17 @@ const ChatInterface = ({ className = "", initialQuestion, mbtiType }: ChatInterf
     handleReuseMessage
   } = useChatMessages({ initialQuestion, mbtiType, resetOnRefresh: true });
 
-  // Ensure scroll to bottom when new messages are added
+  // Only scroll to bottom when user sends a new message or when assistant replies
   useEffect(() => {
-    if (messagesContainerRef.current) {
-      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+    // Don't auto-scroll on component mount - only on new messages
+    if (messages.length > 0 && messagesContainerRef.current) {
+      // Use smooth scrolling for better UX
+      messagesContainerRef.current.scrollTo({
+        top: messagesContainerRef.current.scrollHeight,
+        behavior: 'smooth'
+      });
     }
-  }, [messages.length, isLoading]);
+  }, [messages.length]);
 
   return (
     <div className="flex flex-col w-full h-full overflow-hidden">

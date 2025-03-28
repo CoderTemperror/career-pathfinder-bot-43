@@ -1,5 +1,5 @@
 
-import React, { useRef, useEffect } from 'react';
+import React, { useRef } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { chatMessageAnimation } from '@/utils/animations';
 import UserMessage from './UserMessage';
@@ -21,12 +21,6 @@ const MessageList = ({
   onReuseMessage 
 }: MessageListProps) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, [messages, isLoading]);
 
   return (
     <div className="max-w-5xl mx-auto px-4 pb-28 pt-4 w-full">
