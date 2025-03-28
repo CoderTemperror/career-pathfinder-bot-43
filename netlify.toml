@@ -1,0 +1,11 @@
+
+# Netlify configuration file
+# This configures Netlify to handle client-side routing
+
+# The following redirect rule tells Netlify that for any request to a path that
+# doesn't exist as a static file, serve the index.html instead.
+# This allows React Router to handle client-side routing.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
