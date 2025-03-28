@@ -29,17 +29,17 @@ const MessageList = ({
   }, [messages, isLoading]);
 
   return (
-    <div className="max-w-5xl mx-auto px-4 pb-28 pt-4">
+    <div className="max-w-5xl mx-auto px-4 pb-28 pt-4 w-full">
       <AnimatePresence initial={false}>
         {messages.map((message) => (
           <motion.div
             key={message.id}
-            layout
+            layout="position"
             initial="initial"
             animate="animate"
             exit="exit"
             variants={chatMessageAnimation}
-            className={message.role === 'user' ? 'user-message-container' : 'assistant-message-container'}
+            className={`mb-6 ${message.role === 'user' ? 'flex justify-end' : 'flex justify-start'}`}
           >
             {message.role === 'user' ? (
               <UserMessage 

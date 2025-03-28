@@ -234,21 +234,10 @@ html {
 }
 
 .user-message {
-  @apply bg-blue-500 text-white py-2.5 px-4 rounded-2xl rounded-tr-none max-w-[80%] break-words;
+  @apply text-right;
 }
 
 /* Assistant message container styles */
 .assistant-message-container {
   @apply flex justify-start mb-6;
-}
-
-/* Card shadow effects */
-.hover-shadow {
-  @apply transition-all duration-300;
-  box-shadow: var(--shadow-standard);
-}
-
-.hover-shadow:hover {
-  transform: translateY(-5px);
-  box-shadow: var(--shadow-hover);
 }

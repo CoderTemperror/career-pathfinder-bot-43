@@ -1,5 +1,5 @@
 
-import { useRef } from 'react';
+import { useRef, useEffect } from 'react';
 import { useChatMessages } from '@/hooks/useChatMessages';
 import MessageList from './chat/MessageList';
 import ChatInput from './chat/ChatInput';
@@ -25,6 +25,13 @@ const ChatInterface = ({ className = "", initialQuestion, mbtiType }: ChatInterf
     handleEditMessage,
     handleReuseMessage
   } = useChatMessages({ initialQuestion, mbtiType, resetOnRefresh: true });
+
+  // Ensure scroll to bottom when new messages are added
+  useEffect(() => {
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+    }
+  }, [messages.length, isLoading]);
 
   return (
     <div className="flex flex-col w-full h-full overflow-hidden">
