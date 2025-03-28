@@ -6,7 +6,7 @@ import { componentTagger } from "lovable-tagger";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
-  base: '/career-pathfinder-bot/', // Update this with your actual repository name
+  base: '/Career-Compass/', // Fixed the base path to match repository name exactly
   server: {
     host: "::",
     port: 8080,
